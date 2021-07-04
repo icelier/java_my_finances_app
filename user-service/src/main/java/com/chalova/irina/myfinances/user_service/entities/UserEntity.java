@@ -1,4 +1,4 @@
-package users.entities;
+package com.chalova.irina.myfinances.user_service.entities;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,19 +16,19 @@ public class UserEntity {
     private Long id;
 
     @Column(name = "username")
-    private String username;
-
-    @Column(name = "fullname")
-    private String fullname;
+    private String userName;
 
     @Column(name = "password")
     private String password;
 
-    @Column(name = "email")
-    private String email;
+    @Column(name = "fullname")
+    private String fullName;
 
     @Column(name = "age")
     private int age;
+
+    @Column(name = "email")
+    private String email;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles",
@@ -52,20 +52,20 @@ public class UserEntity {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getFullname() {
-        return fullname;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setFullname(String fullname) {
-        this.fullname = fullname;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public String getPassword() {
@@ -99,10 +99,10 @@ public class UserEntity {
 
     public UserEntity() {}
 
-    public UserEntity(Long id, String username, String fullname, String password, String email, int age) {
+    public UserEntity(Long id, String userName, String fullName, String password, String email, int age) {
         this.id = id;
-        this.username = username;
-        this.fullname = fullname;
+        this.userName = userName;
+        this.fullName = fullName;
         this.password = password;
         this.email = email;
         this.age = age;

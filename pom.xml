@@ -7,6 +7,8 @@
         <module>user-service</module>
 		<module>finances-service</module>
 		<module>databases</module>
+		<module>config-server</module>
+		<module>jborn_course_homework</module>
 	</modules>
     <parent>
 		<groupId>org.springframework.boot</groupId>

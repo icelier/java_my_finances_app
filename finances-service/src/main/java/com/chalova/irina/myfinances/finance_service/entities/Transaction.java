@@ -1,4 +1,6 @@
-package finances.entities;
+package com.chalova.irina.myfinances.finance_service.entities;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -7,6 +9,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "transactions")
 public class Transaction {
+    private static final String TIMESTAMP_FORMAT = "yyyy:MM:dd hh:mm:ss";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -15,11 +19,12 @@ public class Transaction {
     @Column(name = "transfer")
     private BigDecimal sum;
 
-    @Column(name = "operation")
+    @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private Operation operation;
 
-    @Column(name = "ts")
+    @JsonFormat(pattern = TIMESTAMP_FORMAT)
+    @Column(name = "ts", updatable = false)
     private LocalDateTime timestamp;
 
     @ManyToOne
@@ -29,6 +34,11 @@ public class Transaction {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @PrePersist
+    protected void onCreate() {
+        this.timestamp = LocalDateTime.now();
+    }
 
     public Long getId() {
         return id;
@@ -68,6 +78,14 @@ public class Transaction {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
     }
 
     public Transaction() {}

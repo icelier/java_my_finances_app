@@ -1,10 +1,10 @@
-package finances.entities;
+package com.chalova.irina.myfinances.finance_service.entities;
 
 import javax.persistence.*;
 
 @Entity
-@Table(name = "account_types")
-public class AccountType {
+@Table(name = "categories")
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -29,9 +29,9 @@ public class AccountType {
         this.title = title;
     }
 
-    public AccountType() {}
+    public Category() {}
 
-    public AccountType(Long id, String title) {
+    public Category(Long id, String title) {
         this.id = id;
         this.title = title;
     }

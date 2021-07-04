@@ -1,6 +1,6 @@
-package finances.entities;
+package com.chalova.irina.myfinances.finance_service.entities;
 
-import users.entities.UserEntity;
+import com.chalova.irina.myfinances.user_service.entities.UserEntity;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -13,17 +13,17 @@ public class Account {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "bank")
-    private String bankName;
+    @Column(name = "name")
+    private String name;
 
     @Column(name = "total")
     private BigDecimal sum;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id")
     private AccountType type;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
@@ -35,12 +35,12 @@ public class Account {
         this.id = id;
     }
 
-    public String getBankName() {
-        return bankName;
+    public String getName() {
+        return name;
     }
 
-    public void setBankName(String bankName) {
-        this.bankName = bankName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public BigDecimal getSum() {
@@ -69,9 +69,9 @@ public class Account {
 
     public Account() {}
 
-    public Account(Long id, String bankName, BigDecimal sum, AccountType type, UserEntity user) {
+    public Account(Long id, String name, BigDecimal sum, AccountType type, UserEntity user) {
         this.id = id;
-        this.bankName = bankName;
+        this.name = name;
         this.sum = sum;
         this.type = type;
         this.user = user;

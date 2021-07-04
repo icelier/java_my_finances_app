@@ -1,4 +1,4 @@
-package users.entities;
+package com.chalova.irina.myfinances.user_service.entities;
 
 import org.springframework.data.rest.core.config.Projection;
 
