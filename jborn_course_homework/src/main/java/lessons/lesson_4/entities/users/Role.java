@@ -1,6 +1,4 @@
-package lessons.lesson_3_add_dao.entities.users;
-
-import java.util.Objects;
+package lessons.lesson_4.entities.users;
 
 public class Role {
 
@@ -37,18 +35,5 @@ public class Role {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 '}';
-    }
-
-        @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Role role = (Role) o;
-        return getId().equals(role.getId()) && getName().equals(role.getName());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getName());
     }
 }
