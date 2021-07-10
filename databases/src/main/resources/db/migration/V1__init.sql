@@ -28,8 +28,8 @@ username        VARCHAR(50) NOT NULL,
 password        VARCHAR(100) NOT NULL,
 fullname        VARCHAR(100) NOT NULL,
 age             INT,
-email           VARCHAR(50),
-UNIQUE (username),
+email           VARCHAR(50) NOT NULL,
+UNIQUE (username), UNIQUE(email),
 PRIMARY KEY (id)
 );
 
@@ -45,6 +45,7 @@ type_id         INT NOT NULL,
 user_id         INT NOT NULL,
 name            VARCHAR(50) NOT NULL,
 total           NUMERIC(15, 2) NOT NULL DEFAULT 0,
+UNIQUE(user_id, name),
 PRIMARY KEY (id),
 CONSTRAINT FK_USER_ID_FK1 FOREIGN KEY (user_id)
 REFERENCES users (id)
@@ -61,7 +62,7 @@ CREATE TYPE operation AS ENUM ('CREDIT', 'DEBET');
 
 CREATE TABLE IF NOT EXISTS transactions (
 id              BIGSERIAL,
-transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer > 0),
+transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer <> 0),
 type            operation NOT NULL,
 account_id      INT NOT NULL,
 category_id     INT NOT NULL,
@@ -96,7 +97,7 @@ VALUES
 CREATE TABLE IF NOT EXISTS users_roles (
     user_id INT NOT NULL,
     role_id INT NOT NULL,
-    PRIMARY KEY (user_id, role_id),
+    -- PRIMARY KEY (user_id, role_id),
 
     CONSTRAINT FK_USER_ID_FK2 FOREIGN KEY (user_id)
     REFERENCES users (id)

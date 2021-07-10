@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+    <changeSet author="myfinances" id="1626069474440-1">
+        <createSequence sequenceName="account_types_id_seq"/>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-2">
+        <createSequence sequenceName="accounts_id_seq"/>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-3">
+        <createSequence sequenceName="categories_id_seq"/>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-4">
+        <createSequence sequenceName="roles_id_seq"/>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-5">
+        <createSequence sequenceName="transactions_id_seq"/>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-6">
+        <createSequence sequenceName="users_id_seq"/>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-7">
+        <createTable tableName="users">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints unique="true" nullable="false" primaryKey="true" primaryKeyName="users_pkey"/>
+            </column>
+            <column name="username" type="VARCHAR(50)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fullname" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="age" type="INT"/>
+            <column name="email" type="VARCHAR(50)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-8">
+        <createTable tableName="account_types">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints unique="true" nullable="false" primaryKey="true" primaryKeyName="account_types_pkey"/>
+            </column>
+            <column name="title" type="VARCHAR(50)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-9">
+        <createTable tableName="accounts">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints unique="true" nullable="false" primaryKey="true" primaryKeyName="accounts_pkey"/>
+            </column>
+            <column name="type_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValueNumeric="0" name="total" type="numeric(15, 2)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="accounts" baseColumnNames="type_id" constraintName="fk_type_id"
+                                 referencedTableName="account_types"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+        <addForeignKeyConstraint baseTableName="accounts" baseColumnNames="user_id" constraintName="fk_accounts_user_id"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-10">
+        <createTable tableName="categories">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints unique="true" nullable="false" primaryKey="true" primaryKeyName="categories_pkey"/>
+            </column>
+            <column name="title" type="VARCHAR(50)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-11">
+        <createTable tableName="roles">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints unique="true" nullable="false" primaryKey="true" primaryKeyName="roles_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(50)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-12">
+        <createTable tableName="users_roles">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="users_roles" baseColumnNames="user_id" constraintName="fk_roles_user_id"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+        <addForeignKeyConstraint baseTableName="users_roles" baseColumnNames="role_id" constraintName="fk_role_id"
+                                 referencedTableName="roles"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+        />
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-13">
+        <sql>
+            INSERT INTO categories (title) VALUES ('salary'), ('transfer'), ('present'),
+            ('utility bills'), ('loan payment'),
+            ('food'), ('pet food'), ('children'),
+            ('gasoline'), ('drugs'), ('medical services'),
+            ('clothes'), ('sport'), ('restaurants'), ('entertainment');
+
+            INSERT INTO account_types (title) VALUES ('cash'), ('salary card'),
+            ('credit card'), ('bank loan'), ('borrowed money'),
+            ('deposit');
+
+            INSERT INTO users (username, password, fullname, age, email) VALUES
+            ('daddy', '$2y$12$LSBYHvx/ACO5GQQfDyWrnudJvpjeqCLVNiPdIto.a0lFwiM15gqAS',
+            'Ivan Sokolov', 55, 'sokol@gmail.com'),
+            ('mommy', '$2y$12$rtn8PcIVEhnV5F9donGdnuhp/nKED8.kqeeLtvq5seqtr/cMK4B.6',
+            'Elena Sokolova', 52, 'mom@gmail.com');
+
+            INSERT INTO roles (name)
+            VALUES
+            ('ROLE_USER'),
+            ('ROLE_ADMIN');
+        </sql>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-14">
+        <sql>
+            INSERT INTO users_roles
+            VALUES
+            (1, 1),
+            (1, 2),
+            (2, 1);
+        </sql>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-15">
+        <sql>
+            INSERT INTO accounts (type_id, user_id, name, total) VALUES (2, 1, 'father main salary card', 150000),
+            (2, 2, 'mother main salary card', 26500), (3, 2, 'mother credit card', 110000);
+        </sql>
+    </changeSet>
+    <changeSet author="myfinances" id="1626069474440-16">
+        <sql splitStatements="true">
+            CREATE TYPE operation AS ENUM ('CREDIT', 'DEBET');
+
+            CREATE TABLE IF NOT EXISTS transactions (
+            id              BIGSERIAL,
+            transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer &lt;&gt; 0),
+<!--            type            operation NOT NULL,-->
+            type            VARCHAR(25) NOT NULL CHECK (type in ('CREDIT', 'DEBET')),
+            account_id      INT NOT NULL,
+            category_id     INT NOT NULL,
+            ts              TIMESTAMP NOT NULL,
+            PRIMARY KEY (id),
+            CONSTRAINT FK_ACCOUNT_ID FOREIGN KEY (account_id)
+            REFERENCES accounts (id)
+            ON DELETE CASCADE ON UPDATE CASCADE,
+            CONSTRAINT FK_CATEGORY_ID FOREIGN KEY (category_id)
+            REFERENCES categories (id)
+            ON DELETE CASCADE ON UPDATE CASCADE
+            );
+
+            INSERT INTO transactions (transfer, type, account_id, category_id, ts)
+            VALUES (2000, 'CREDIT', 2, 3, '2021-06-22 19:10:25'),
+            (20340, 'CREDIT', 3, 3, '2021-06-22 19:10:25'),
+            (53530, 'DEBET', 1, 1, '2021-06-22 19:10:25'),
+            (200, 'CREDIT', 2, 6, '2021-06-22 19:10:25'),
+            (2055, 'CREDIT', 1, 5, '2021-06-22 19:10:25'),
+            (1536, 'CREDIT', 2, 4, '2021-06-22 19:10:25');
+        </sql>
+    </changeSet>
+</databaseChangeLog>
