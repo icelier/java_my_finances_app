@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS categories (
-id              SERIAL,
+id              BIGSERIAL,
 title           VARCHAR(50) NOT NULL,
 UNIQUE (title),
 PRIMARY KEY (id)
@@ -12,7 +12,7 @@ INSERT INTO categories (title) VALUES ('salary'), ('present'),
 ('clothes'), ('sport'), ('restaurants'), ('entertainment');
 
 CREATE TABLE IF NOT EXISTS account_types (
-id              SERIAL,
+id              BIGSERIAL,
 title           VARCHAR(50) NOT NULL,
 UNIQUE (title),
 PRIMARY KEY (id)
@@ -23,7 +23,7 @@ INSERT INTO account_types (title) VALUES ('cash'), ('salary card'),
 ('deposit');
 
 CREATE TABLE IF NOT EXISTS users (
-id              SERIAL,
+id              BIGSERIAL,
 username        VARCHAR(50) NOT NULL,
 password        VARCHAR(100) NOT NULL,
 fullname        VARCHAR(100) NOT NULL,
@@ -40,7 +40,7 @@ INSERT INTO users (username, password, fullname, age, email) VALUES
 'Elena Sokolova', 52, 'mom@gmail.com');
 
 CREATE TABLE IF NOT EXISTS accounts (
-id              SERIAL,
+id              BIGSERIAL,
 type_id         INT NOT NULL,
 user_id         INT NOT NULL,
 name            VARCHAR(50) NOT NULL,
@@ -48,10 +48,10 @@ total           NUMERIC(15, 2) NOT NULL DEFAULT 0,
 PRIMARY KEY (id),
 CONSTRAINT FK_USER_ID_FK1 FOREIGN KEY (user_id)
 REFERENCES users (id)
-ON DELETE NO ACTION ON UPDATE CASCADE,
+ON DELETE CASCADE ON UPDATE CASCADE,
 CONSTRAINT FK_TYPE_ID FOREIGN KEY (type_id)
 REFERENCES account_types (id)
-ON DELETE NO ACTION ON UPDATE CASCADE
+ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 INSERT INTO accounts (type_id, user_id, name, total) VALUES (2, 1, 'father main salary card', 150000),
@@ -60,7 +60,7 @@ INSERT INTO accounts (type_id, user_id, name, total) VALUES (2, 1, 'father main 
 CREATE TYPE operation AS ENUM ('CREDIT', 'DEBET');
 
 CREATE TABLE IF NOT EXISTS transactions (
-id              SERIAL,
+id              BIGSERIAL,
 transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer > 0),
 type            operation NOT NULL,
 account_id      INT NOT NULL,
@@ -69,10 +69,10 @@ ts              TIMESTAMP NOT NULL,
 PRIMARY KEY (id),
 CONSTRAINT FK_ACCOUNT_ID FOREIGN KEY (account_id)
 REFERENCES accounts (id)
-ON DELETE NO ACTION ON UPDATE CASCADE,
+ON DELETE CASCADE ON UPDATE CASCADE,
 CONSTRAINT FK_CATEGORY_ID FOREIGN KEY (category_id)
 REFERENCES categories (id)
-ON DELETE NO ACTION ON UPDATE CASCADE
+ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 INSERT INTO transactions (transfer, type, account_id, category_id, ts)
@@ -84,7 +84,7 @@ VALUES (2000, 'CREDIT', 2, 3, '2021-06-22 19:10:25'),
 (1536, 'CREDIT', 2, 4, '2021-06-22 19:10:25');
 
 CREATE TABLE IF NOT EXISTS roles (
-    id                      serial,
+    id                      BIGSERIAL,
     name                    VARCHAR(50) UNIQUE NOT NULL,
     PRIMARY KEY (id)
 );
@@ -100,11 +100,11 @@ CREATE TABLE IF NOT EXISTS users_roles (
 
     CONSTRAINT FK_USER_ID_FK2 FOREIGN KEY (user_id)
     REFERENCES users (id)
-    ON DELETE NO ACTION ON UPDATE CASCADE,
+    ON DELETE CASCADE ON UPDATE CASCADE,
 
     CONSTRAINT FK_ROLE_ID FOREIGN KEY (role_id)
     REFERENCES roles (id)
-    ON DELETE NO ACTION ON UPDATE CASCADE
+    ON DELETE CASCADE ON UPDATE CASCADE
 );
 INSERT INTO users_roles
 VALUES
