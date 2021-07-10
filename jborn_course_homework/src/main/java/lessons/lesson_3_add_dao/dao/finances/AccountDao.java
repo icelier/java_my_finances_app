@@ -36,7 +36,7 @@ public class AccountDao implements Dao<Account, Long> {
             ResultSet rs = ps.executeQuery();
             Account account = null;
             if (rs.next()) {
-                account = getAccountFromResult(rs, id);
+                account = getAccountFromResult(rs);
             }
 
             return account;
@@ -53,7 +53,7 @@ public class AccountDao implements Dao<Account, Long> {
             ResultSet rs = ps.executeQuery();
             List<Account> accounts = new ArrayList<>();
             while (rs.next()) {
-                Account account = getAccountFromResult(rs, rs.getLong("id"));
+                Account account = getAccountFromResult(rs);
                 accounts.add(account);
             }
 
@@ -142,10 +142,10 @@ public class AccountDao implements Dao<Account, Long> {
         }
     }
 
-    private Account getAccountFromResult(ResultSet result, Long id) throws SQLException {
+    private Account getAccountFromResult(ResultSet result) throws SQLException {
         Account account = new Account();
         logger.debug("Account found from db: " + result.getString("name"));
-        account.setId(id);
+        account.setId(result.getLong("id"));
         account.setName(result.getString("name"));
         account.setSum(result.getBigDecimal("total"));
         Long typeId = result.getLong("type_id");

@@ -30,7 +30,7 @@ public class CategoryDao implements Dao<Category, Long> {
             ResultSet rs = ps.executeQuery();
             Category category = null;
             if (rs.next()) {
-                category = getCategoryFromResult(rs, id);
+                category = getCategoryFromResult(rs);
             }
 
             return category;
@@ -52,7 +52,7 @@ public class CategoryDao implements Dao<Category, Long> {
             ResultSet rs = ps.executeQuery();
             List<Category> categories = new ArrayList<>();
             while (rs.next()) {
-                Category category = getCategoryFromResult(rs, rs.getLong("id"));
+                Category category = getCategoryFromResult(rs);
                 categories.add(category);
             }
 
@@ -137,10 +137,10 @@ public class CategoryDao implements Dao<Category, Long> {
         }
     }
 
-    private Category getCategoryFromResult(ResultSet result, Long id) throws SQLException {
+    private Category getCategoryFromResult(ResultSet result) throws SQLException {
         Category category = new Category();
         logger.debug("Category found from db: " + result.getString("title"));
-        category.setId(id);
+        category.setId(result.getLong("id"));
         category.setTitle(result.getString("title"));
 
         return category;

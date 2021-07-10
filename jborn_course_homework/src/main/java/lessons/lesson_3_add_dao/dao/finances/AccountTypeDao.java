@@ -34,7 +34,7 @@ public class AccountTypeDao implements Dao<AccountType, Long> {
             ResultSet rs = ps.executeQuery();
             AccountType type = null;
             if (rs.next()) {
-                type = getAccountTypeFromResult(rs, id);
+                type = getAccountTypeFromResult(rs);
             }
 
             return type;
@@ -56,7 +56,7 @@ public class AccountTypeDao implements Dao<AccountType, Long> {
             ResultSet rs = ps.executeQuery();
             List<AccountType> types = new ArrayList<>();
             while (rs.next()) {
-                AccountType type = getAccountTypeFromResult(rs, rs.getLong("id"));
+                AccountType type = getAccountTypeFromResult(rs);
                 types.add(type);
             }
 
@@ -139,10 +139,10 @@ public class AccountTypeDao implements Dao<AccountType, Long> {
         }
     }
 
-    private AccountType getAccountTypeFromResult(ResultSet result, Long id) throws SQLException {
+    private AccountType getAccountTypeFromResult(ResultSet result) throws SQLException {
         AccountType type = new AccountType();
         logger.debug("AccountType found from db: " + result.getString("title"));
-        type.setId(id);
+        type.setId(result.getLong("id"));
         type.setTitle(result.getString("title"));
 
         return type;

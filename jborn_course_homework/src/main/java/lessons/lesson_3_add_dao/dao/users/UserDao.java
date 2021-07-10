@@ -37,7 +37,7 @@ public class UserDao implements Dao<UserEntity, Long> {
             ResultSet rs = ps.executeQuery();
             UserEntity user = null;
             if (rs.next()) {
-                user = getUserFromResult(rs, id);
+                user = getUserFromResult(rs);
             }
 
             return user;
@@ -54,7 +54,7 @@ public class UserDao implements Dao<UserEntity, Long> {
             ResultSet rs = ps.executeQuery();
             List<UserEntity> users = new ArrayList<>();
             while (rs.next()) {
-                UserEntity user = getUserFromResult(rs, rs.getLong("id"));
+                UserEntity user = getUserFromResult(rs);
                 users.add(user);
             }
 
@@ -81,11 +81,11 @@ public class UserDao implements Dao<UserEntity, Long> {
             if (!insertIntoUsersRoles(insertedUser.getId(), 1L)) {
                 throw new SQLException("Failed to add ROLE_USER for user");
             }
-            List<Role> userRole = new ArrayList<Role>();
-            userRole.add(new Role(1L, "ROLE_USER"));
-            user.setRoles(userRole);
+            List<Role> userRoles = new ArrayList();
+            userRoles.add(new Role(1L, "ROLE_USER"));
+            insertedUser.setRoles(userRoles);
 
-            return user;
+            return insertedUser;
         }
     }
 
@@ -238,16 +238,16 @@ public class UserDao implements Dao<UserEntity, Long> {
         }
     }
 
-    private UserEntity getUserFromResult(ResultSet rs, Long id) throws SQLException {
+    private UserEntity getUserFromResult(ResultSet result) throws SQLException {
         UserEntity user = new UserEntity();
-        logger.debug("User found from db: " + rs.getString("username"));
-        user.setId(id);
-        user.setUserName(rs.getString("username"));
-        user.setFullName(rs.getString("fullname"));
-        user.setEmail(rs.getString("email"));
-        user.setPassword(rs.getString("password"));
-        user.setAge(rs.getInt("age"));
-        List<Role> roles = getUserRoles(rs.getLong("user_id"));
+        logger.debug("User found from db: " + result.getString("username"));
+        user.setId(result.getLong("id"));
+        user.setUserName(result.getString("username"));
+        user.setFullName(result.getString("fullname"));
+        user.setEmail(result.getString("email"));
+        user.setPassword(result.getString("password"));
+        user.setAge(result.getInt("age"));
+        List<Role> roles = getUserRoles(result.getLong("user_id"));
         user.setRoles(roles);
 
         return user;

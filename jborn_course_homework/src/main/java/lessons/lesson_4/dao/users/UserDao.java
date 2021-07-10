@@ -33,7 +33,24 @@ public class UserDao implements Dao<UserEntity, Long> {
             ResultSet rs = ps.executeQuery();
             UserEntity user = null;
             if (rs.next()) {
-                user = getUserFromResult(rs, id);
+                user = getUserFromResult(rs);
+            }
+
+            return user;
+        }
+    }
+
+    public UserEntity findByUserName(String userName) throws SQLException {
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT * FROM users WHERE username=?"
+            )) {
+
+            ps.setString(1, userName);
+            ResultSet rs = ps.executeQuery();
+            UserEntity user = null;
+            if (rs.next()) {
+                user = getUserFromResult(rs);
             }
 
             return user;
@@ -50,7 +67,7 @@ public class UserDao implements Dao<UserEntity, Long> {
             ResultSet rs = ps.executeQuery();
             List<UserEntity> users = new ArrayList<>();
             while (rs.next()) {
-                UserEntity user = getUserFromResult(rs, rs.getLong("id"));
+                UserEntity user = getUserFromResult(rs);
                 users.add(user);
             }
 
@@ -238,17 +255,16 @@ public class UserDao implements Dao<UserEntity, Long> {
         }
     }
 
-    private UserEntity getUserFromResult(ResultSet rs, Long id) throws SQLException {
+    private UserEntity getUserFromResult(ResultSet rs) throws SQLException {
         UserEntity user = new UserEntity();
         logger.debug("User found from db: " + rs.getString("username"));
-        user.setId(id);
+        user.setId(rs.getLong("id"));
         user.setUserName(rs.getString("username"));
         user.setFullName(rs.getString("fullname"));
         user.setEmail(rs.getString("email"));
         user.setPassword(rs.getString("password"));
         user.setAge(rs.getInt("age"));
-        List<Role> roles = getUserRoles(rs.getLong("user_id"));
-        user.setRoles(roles);
+        List<Role> roles = getUserRoles(rs.getLong("id"));
 
         return user;
     }
@@ -262,8 +278,11 @@ public class UserDao implements Dao<UserEntity, Long> {
     private List<Role> getUserRoles(Long userId) throws SQLException {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(
-                     "SELECT roles.id, roles.name FROM users_roles INNER JOIN roles" +
-                             "ON users_roles.role_id=roles.id WHERE user_id=?;"
+                     "SELECT r.* " +
+                             "FROM roles AS r " +
+                             "INNER JOIN users_roles AS ur " +
+                             "ON r.id=ur.role_id " +
+                             "WHERE ur.user_id=?"
              )) {
 
             ps.setLong(1, userId);

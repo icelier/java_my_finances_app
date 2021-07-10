@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +37,7 @@ public class TransactionDao implements Dao<Transaction, Long> {
             ResultSet rs = ps.executeQuery();
             Transaction transaction = null;
             if (rs.next()) {
-                transaction = getTransactionFromResult(rs, id);
+                transaction = getTransactionFromResult(rs);
             }
 
             return transaction;
@@ -51,7 +54,7 @@ public class TransactionDao implements Dao<Transaction, Long> {
             ResultSet rs = ps.executeQuery();
             List<Transaction> transactions = new ArrayList<>();
             while (rs.next()) {
-                Transaction transaction = getTransactionFromResult(rs, rs.getLong("id"));
+                Transaction transaction = getTransactionFromResult(rs);
                 transactions.add(transaction);
             }
 
@@ -144,10 +147,10 @@ public class TransactionDao implements Dao<Transaction, Long> {
         }
     }
 
-    private Transaction getTransactionFromResult(ResultSet result, Long id) throws SQLException {
+    private Transaction getTransactionFromResult(ResultSet result) throws SQLException {
         Transaction transaction = new Transaction();
         logger.debug("Transaction found from db: " + result.getString("transfer"));
-        transaction.setId(id);
+        transaction.setId(result.getLong("id"));
         transaction.setSum(result.getBigDecimal("transfer"));
 
         String operationType = result.getString("type");
@@ -177,5 +180,49 @@ public class TransactionDao implements Dao<Transaction, Long> {
         transaction.setTimestamp(timestamp.toLocalDateTime());
 
         return transaction;
+    }
+
+    public List<Transaction> findAllByUserId(Long userId) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement ps = connection.prepareStatement(
+                     "SELECT transactions.* " +
+                             "FROM transactions " +
+                             "INNER JOIN accounts " +
+                             "ON transactions.account_id=accounts.id " +
+                             "WHERE accounts.user_id=?"
+             )) {
+            ps.setLong(1, userId);
+            ResultSet rs = ps.executeQuery();
+            List<Transaction> transactions = new ArrayList<>();
+            while (rs.next()) {
+                Transaction transaction = getTransactionFromResult(rs);
+                transactions.add(transaction);
+            }
+
+            return transactions;
+        }
+    }
+
+    public List<Transaction> findAllByUserIdToday(Long userId) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement ps = connection.prepareStatement(
+                     "SELECT transactions.* FROM transactions INNER JOIN accounts ON " +
+                             "transactions.account_id=accounts.id WHERE accounts.user_id=?" +
+                             "AND transactions.ts BETWEEN ? AND ?"
+             )) {
+            ps.setLong(1, userId);
+            ps.setTimestamp(2,
+                    Timestamp.valueOf(LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)));
+            ps.setTimestamp(3,
+                    Timestamp.valueOf(LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIDNIGHT)));
+            ResultSet rs = ps.executeQuery();
+            List<Transaction> transactions = new ArrayList<>();
+            while (rs.next()) {
+                Transaction transaction = getTransactionFromResult(rs);
+                transactions.add(transaction);
+            }
+
+            return transactions;
+        }
     }
 }

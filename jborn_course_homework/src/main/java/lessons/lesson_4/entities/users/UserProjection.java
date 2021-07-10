@@ -61,4 +61,11 @@ public class UserProjection {
         this.password = password;
         this.email = email;
     }
+
+    public UserProjection(UserEntity userEntity) {
+        this.id = userEntity.getId();
+        this.userName = userEntity.getUserName();
+        this.password = userEntity.getPassword();
+        this.email = userEntity.getEmail();
+    }
 }

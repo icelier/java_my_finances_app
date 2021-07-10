@@ -32,7 +32,7 @@ public class AccountDao implements Dao<Account, Long> {
             ResultSet rs = ps.executeQuery();
             Account account = null;
             if (rs.next()) {
-                account = getAccountFromResult(rs, id);
+                account = getAccountFromResult(rs);
             }
 
             return account;
@@ -49,7 +49,7 @@ public class AccountDao implements Dao<Account, Long> {
             ResultSet rs = ps.executeQuery();
             List<Account> accounts = new ArrayList<>();
             while (rs.next()) {
-                Account account = getAccountFromResult(rs, rs.getLong("id"));
+                Account account = getAccountFromResult(rs);
                 accounts.add(account);
             }
 
@@ -64,20 +64,20 @@ public class AccountDao implements Dao<Account, Long> {
     @Override
     public Account insert(Account account) throws SQLException {
         try(Connection connection = dataSource.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(
+            PreparedStatement ps = connection.prepareStatement(
                     "INSERT INTO accounts (type_id, user_id, name, total) VALUES (?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS
             )) {
-                preparedStatement.setLong(1, account.getType().getId());
-                preparedStatement.setLong(2, account.getUser().getId());
-                preparedStatement.setString(3, account.getName());
-                preparedStatement.setBigDecimal(4, account.getSum());
+                ps.setLong(1, account.getType().getId());
+                ps.setLong(2, account.getUser().getId());
+                ps.setString(3, account.getName());
+                ps.setBigDecimal(4, account.getSum());
 
-                int affectedRows = preparedStatement.executeUpdate();
+                int affectedRows = ps.executeUpdate();
                 if (affectedRows == 0) {
                     throw new SQLException("Failed to insert new account");
                 }
-                ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+                ResultSet generatedKeys = ps.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     account.setId(generatedKeys.getLong(1));
                 } else {
@@ -140,10 +140,10 @@ public class AccountDao implements Dao<Account, Long> {
         }
     }
 
-    private Account getAccountFromResult(ResultSet result, Long id) throws SQLException {
+    private Account getAccountFromResult(ResultSet result) throws SQLException {
         Account account = new Account();
         logger.debug("Account found from db: " + result.getString("name"));
-        account.setId(id);
+        account.setId(result.getLong("id"));
         account.setName(result.getString("name"));
         account.setSum(result.getBigDecimal("total"));
         Long typeId = result.getLong("type_id");
@@ -155,4 +155,21 @@ public class AccountDao implements Dao<Account, Long> {
 
         return account;
     }
- }
+
+    public List<Account> findAllByUserId(Long userId) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement ps = connection.prepareStatement(
+                     "SELECT * FROM accounts WHERE user_id=?"
+             )) {
+            ps.setLong(1, userId);
+            ResultSet rs = ps.executeQuery();
+            List<Account> accounts = new ArrayList<>();
+            while (rs.next()) {
+                Account account = getAccountFromResult(rs);
+                accounts.add(account);
+            }
+
+            return accounts;
+        }
+    }
+}

@@ -93,4 +93,19 @@ public class UserEntity {
         this.email = email;
         this.age = age;
     }
+
+    public UserEntity(String userName, String fullName, String password, String email, int age) {
+        this.userName = userName;
+        this.fullName = fullName;
+        this.password = password;
+        this.email = email;
+        this.age = age;
+    }
+
+    public UserEntity(String userName, String password) {
+        this.userName = userName;
+        this.fullName = userName;
+        this.password = password;
+        this.email = "";
+    }
 }

@@ -86,4 +86,14 @@ public class Transaction {
         this.category = category;
         this.timestamp = LocalDateTime.now();
     }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                operation +
+                ": sum=" + sum +
+                ", timestamp=" + timestamp +
+                ", category=" + category.getTitle() +
+                '}';
+    }
 }

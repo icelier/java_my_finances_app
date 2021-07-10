@@ -37,7 +37,7 @@ public class TransactionDao implements Dao<Transaction, Long> {
             ResultSet rs = ps.executeQuery();
             Transaction transaction = null;
             if (rs.next()) {
-                transaction = getTransactionFromResult(rs, id);
+                transaction = getTransactionFromResult(rs);
             }
 
             return transaction;
@@ -54,7 +54,7 @@ public class TransactionDao implements Dao<Transaction, Long> {
             ResultSet rs = ps.executeQuery();
             List<Transaction> transactions = new ArrayList<>();
             while (rs.next()) {
-                Transaction transaction = getTransactionFromResult(rs, rs.getLong("id"));
+                Transaction transaction = getTransactionFromResult(rs);
                 transactions.add(transaction);
             }
 
@@ -145,10 +145,10 @@ public class TransactionDao implements Dao<Transaction, Long> {
         }
     }
 
-    private Transaction getTransactionFromResult(ResultSet result, Long id) throws SQLException {
+    private Transaction getTransactionFromResult(ResultSet result) throws SQLException {
         Transaction transaction = new Transaction();
         logger.debug("Transaction found from db: " + result.getString("transfer"));
-        transaction.setId(id);
+        transaction.setId(result.getLong("id"));
         transaction.setSum(result.getBigDecimal("transfer"));
 
         String operationType = result.getString("type");

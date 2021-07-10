@@ -1,6 +1,6 @@
 package lessons.lesson_2_all_in_one_class;
 
-import lessons.entities.users.UserProjection;
+import lessons.lesson_3_add_dao.entities.users.UserProjection;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.sql.*;
@@ -282,11 +282,11 @@ public class MyFinancesApplication {
     }
 
     private static void showTodayTransactions(UserProjection user) {
-        String getAllTransactions = "SELECT transactions.* FROM transactions INNER JOIN accounts ON " +
+        String getAllTodayTransactions = "SELECT transactions.* FROM transactions INNER JOIN accounts ON " +
                 "transactions.account_id=accounts.id WHERE accounts.user_id=?" +
                 "AND transactions.ts BETWEEN ? AND ?";
         try {
-            PreparedStatement ps = connection.prepareStatement(getAllTransactions);
+            PreparedStatement ps = connection.prepareStatement(getAllTodayTransactions);
             ps.setLong(1,
                     user.getId());
             ps.setTimestamp(2,

@@ -34,7 +34,7 @@ public class RoleDao implements Dao<Role,  Long> {
             ResultSet rs = ps.executeQuery();
             Role role = null;
             if (rs.next()) {
-                role = getRoleFromResult(rs, id);
+                role = getRoleFromResult(rs);
             }
 
             return role;
@@ -56,7 +56,7 @@ public class RoleDao implements Dao<Role,  Long> {
             ResultSet rs = ps.executeQuery();
             List<Role> roles = new ArrayList<>();
             while (rs.next()) {
-                Role type = getRoleFromResult(rs, rs.getLong("id"));
+                Role type = getRoleFromResult(rs);
                 roles.add(type);
             }
 
@@ -139,10 +139,10 @@ public class RoleDao implements Dao<Role,  Long> {
         }
     }
 
-    private Role getRoleFromResult(ResultSet result, Long id) throws SQLException {
+    private Role getRoleFromResult(ResultSet result) throws SQLException {
         Role role = new Role();
         logger.debug("role found from db: " + result.getString("name"));
-        role.setId(id);
+        role.setId(result.getLong("id"));
         role.setName(result.getString("name"));
 
         return role;
