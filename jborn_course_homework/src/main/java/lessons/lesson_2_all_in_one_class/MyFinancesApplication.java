@@ -3,6 +3,7 @@ package lessons.lesson_2_all_in_one_class;
 import lessons.lesson_3_add_dao.entities.users.UserProjection;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.io.PrintWriter;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
