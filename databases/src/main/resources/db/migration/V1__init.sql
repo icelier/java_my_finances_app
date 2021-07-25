@@ -5,7 +5,7 @@ UNIQUE (title),
 PRIMARY KEY (id)
 );
 
-INSERT INTO categories (title) VALUES ('salary'), ('present'),
+INSERT INTO categories (title) VALUES ('salary'), ('transfer'), ('present'),
  ('utility bills'), ('loan payment'),
 ('food'), ('pet food'), ('children'),
 ('gasoline'), ('drugs'), ('medical services'),
@@ -63,7 +63,8 @@ CREATE TYPE operation AS ENUM ('CREDIT', 'DEBET');
 CREATE TABLE IF NOT EXISTS transactions (
 id              BIGSERIAL,
 transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer <> 0),
-type            operation NOT NULL,
+--type            operation NOT NULL,
+type            VARCHAR(25)  NOT NULL CHECK (type in ('CREDIT', 'DEBET')),
 account_id      INT NOT NULL,
 category_id     INT NOT NULL,
 ts              TIMESTAMP NOT NULL,
