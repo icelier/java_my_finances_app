@@ -162,7 +162,7 @@
     </changeSet>
     <changeSet author="myfinances" id="1626069474440-16">
         <sql splitStatements="true">
-            CREATE TYPE operation AS ENUM ('CREDIT', 'DEBET');
+<!--            CREATE TYPE operation AS ENUM ('CREDIT', 'DEBET');-->
 
             CREATE TABLE IF NOT EXISTS transactions (
             id              BIGSERIAL,
@@ -181,12 +181,12 @@
             );
 
             INSERT INTO transactions (transfer, type, account_id, category_id, ts)
-            VALUES (2000, 'CREDIT', 2, 3, '2021-06-22 19:10:25'),
-            (20340, 'CREDIT', 3, 3, '2021-06-22 19:10:25'),
+            VALUES (-2000, 'CREDIT', 2, 3, '2021-06-22 19:10:25'),
+            (-20340, 'CREDIT', 3, 3, '2021-06-22 19:10:25'),
             (53530, 'DEBET', 1, 1, '2021-06-22 19:10:25'),
-            (200, 'CREDIT', 2, 6, '2021-06-22 19:10:25'),
-            (2055, 'CREDIT', 1, 5, '2021-06-22 19:10:25'),
-            (1536, 'CREDIT', 2, 4, '2021-06-22 19:10:25');
+            (-200, 'CREDIT', 2, 6, '2021-06-22 19:10:25'),
+            (-2055, 'CREDIT', 1, 5, '2021-06-22 19:10:25'),
+            (-1536, 'CREDIT', 2, 4, '2021-06-22 19:10:25');
         </sql>
     </changeSet>
 </databaseChangeLog>

@@ -3,11 +3,17 @@ package lessons.lesson_5_spring.entities.finances;
 import lessons.lesson_5_spring.entities.DatabaseEntity;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class Transaction implements DatabaseEntity {
-    public static final String TIMESTAMP_FORMAT = "yyyy:mm:dd HH:mm:ss";
+//    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.nnnnnnnnn");
 
     private Long id;
 
@@ -15,7 +21,7 @@ public class Transaction implements DatabaseEntity {
 
     private Operation operation;
 
-    private LocalDateTime timestamp;
+    private Instant timestamp;
 
     private Account account;
 
@@ -34,7 +40,7 @@ public class Transaction implements DatabaseEntity {
     }
 
     public void setSum(BigDecimal sum) {
-        this.sum = sum;
+        this.sum = sum.setScale(2, RoundingMode.HALF_UP);
     }
 
     public Operation getOperation() {
@@ -61,33 +67,30 @@ public class Transaction implements DatabaseEntity {
         this.category = category;
     }
 
-    public LocalDateTime getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
+    public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
     }
 
+
     public Transaction() {
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = Instant.now();
     }
 
     public Transaction(Long id, BigDecimal sum, Operation operation, Account account, Category category) {
+        this(sum, operation, account, category);
         this.id = id;
-        this.sum = sum;
-        this.operation = operation;
-        this.account = account;
-        this.category = category;
-        this.timestamp = LocalDateTime.now();
     }
 
-        public Transaction(BigDecimal sum, Operation operation, Account account, Category category) {
-        this.sum = sum;
+    public Transaction(BigDecimal sum, Operation operation, Account account, Category category) {
+        this();
+        this.sum = sum.setScale(2, RoundingMode.HALF_UP);
         this.operation = operation;
         this.account = account;
         this.category = category;
-        this.timestamp = LocalDateTime.now();
     }
 
     @Override

@@ -20,18 +20,6 @@ import javax.sql.DataSource;
 public class DaoConfiguration {
 
     @Bean
-    public DataSource dataSource(Environment env) throws Exception {
-        HikariDataSource hikariDataSource = new HikariDataSource();
-        hikariDataSource.setJdbcUrl(env.getProperty("jdbcUrl",
-                "jdbc:postgresql://localhost:5432/postgres?currentSchema=finances"));
-        hikariDataSource.setUsername(env.getProperty("jdbcUsername", "postgres"));
-        hikariDataSource.setPassword(env.getProperty("jdbcPassword","clai531_Tre"));
-        liquibase(hikariDataSource);
-
-        return hikariDataSource;
-    }
-
-    @Bean
     public Liquibase liquibase(DataSource dataSource) throws Exception {
         DatabaseConnection connection = new JdbcConnection(dataSource.getConnection());
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(connection);
@@ -43,6 +31,18 @@ public class DaoConfiguration {
         liquibase.update(new Contexts());
 
         return liquibase;
+    }
+
+    @Bean
+    public DataSource dataSource(Environment env) throws Exception {
+        HikariDataSource hikariDataSource = new HikariDataSource();
+        hikariDataSource.setJdbcUrl(env.getProperty("jdbcUrl",
+                "jdbc:postgresql://localhost:5432/postgres?currentSchema=finances"));
+        hikariDataSource.setUsername(env.getProperty("jdbcUsername", "postgres"));
+        hikariDataSource.setPassword(env.getProperty("jdbcPassword","clai531_Tre"));
+        liquibase(hikariDataSource);
+
+        return hikariDataSource;
     }
 
 }

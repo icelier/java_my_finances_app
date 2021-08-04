@@ -52,20 +52,18 @@ public class AccountService implements AbstractService<Account, Long> {
     }
 
     /**
-     * Returns true if sum successfully updated for the given account else false
+     * Updates total for the given account id with the given sum based on operation type. If operation type is credit,
+     * sum is subtracted and if debet then sum is added
      * @param accountId id of the account where sum to be updated
      * @param sum to be updated by
      * @param connection to be used for query execution
      * @param operation type for transaction
-     * @return true if sum updated successfully else false
      * @throws SQLException if database access error occurred, if underlying query is incorrect
      * @throws AccountNotFoundException if account not found in the database by id
      * @throws AccountNotMatchException if there is not enough money at the account
      */
-    boolean updateSum(Long accountId, BigDecimal sum, Connection connection, Operation operation) throws SQLException, AccountNotFoundException, AccountNotMatchException {
+    void updateSum(Long accountId, BigDecimal sum, Connection connection, Operation operation) throws SQLException, AccountNotFoundException, AccountNotMatchException {
         accountDao.updateSum(accountId, sum, connection, operation);
-
-        return true;
     }
 
     @Override

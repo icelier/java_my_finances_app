@@ -58,7 +58,7 @@ ON DELETE CASCADE ON UPDATE CASCADE
 INSERT INTO accounts (type_id, user_id, name, total) VALUES (2, 1, 'father main salary card', 150000),
 (2, 2, 'mother main salary card', 26500), (3, 2, 'mother credit card', 110000);
 
-CREATE TYPE operation AS ENUM ('CREDIT', 'DEBET');
+--CREATE TYPE operation AS ENUM ('CREDIT', 'DEBET');
 
 CREATE TABLE IF NOT EXISTS transactions (
 id              BIGSERIAL,

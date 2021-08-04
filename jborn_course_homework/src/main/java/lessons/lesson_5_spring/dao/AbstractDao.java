@@ -5,6 +5,8 @@ import lessons.lesson_5_spring.entities.DatabaseEntity;
 import lessons.lesson_5_spring.entities.finances.Account;
 import lessons.lesson_5_spring.exceptions.not_found_exception.DataNotFoundException;
 import lessons.lesson_5_spring.exceptions.operation_failed.OperationFailedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -189,10 +191,7 @@ public abstract class AbstractDao<DOMAIN extends DatabaseEntity, ID> implements 
     }
 
     protected boolean checkIfAlreadyExists(DOMAIN domain) throws SQLException {
-        if (findDomain(domain) != null) {
-            return true;
-        }
-        return false;
+        return findDomain(domain) != null;
     }
 
     protected DOMAIN findDomain(DOMAIN domain) throws SQLException {

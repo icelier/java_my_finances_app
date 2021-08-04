@@ -189,7 +189,7 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
         }
     }
 
-    private List<Role> getUserRoles(Long userId) throws SQLException {
+     public List<Role> getUserRoles(Long userId) throws SQLException {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(
                      getFindRolesByUserIdQuery()
@@ -211,7 +211,7 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
      * Returns roles for the given user id from manyToMany related table users_roles
      * @param userId to search for roles
      * @return list of roles for the given user id or empty list if no any
-     * @throws SQLException if database access error occurred, if query parameter is incorrect
+     * @throws SQLException if database access error occurred, if underlying query is incorrect
      */
     private List<Role> getUserRoles(Connection connection, Long userId) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement(
@@ -234,7 +234,12 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
      * Returns updated user
      * Updates related table users_roles with many-to-many relation in the same transaction. If transaction fails at any stage,
      * makes transaction rollback
-     * @return updated user if success
+     * @param user entity to be updated in the database
+     * @throws SQLException if database access error occurred, if underlying query is incorrect
+     * @throws UserNotFoundException if given user not found in the database
+     * @throws OperationFailedException if update of user roles failed  (either deletion of unnecessary roles
+     * or insertion of new roles into many-to-many related table users_roles)
+     * @return updated user entity if success
      */
     @Override
     public UserEntity update(UserEntity user) throws SQLException, UserNotFoundException, OperationFailedException {
@@ -306,8 +311,8 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
      * Updates related table users_roles with many-to-many relation in the same transaction. If transaction fails at any stage,
      * makes transaction rollback
      * @param user
-     * @throws SQLException
-     * @throws OperationFailedException
+     * @throws SQLException if database access error occurred, if underlying query is incorrect
+     * @throws OperationFailedException if deletion of row in many-to-may related table users_roles failed
      */
     @Override
     public void delete(UserEntity user) throws SQLException, OperationFailedException {
@@ -319,8 +324,6 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
 
             setupDeleteQuery(ps, user);
             executeDataManagingQuery(ps);
-
-            deleteUserRoles(connection, user.getRoles(), user.getId());
         } catch (SQLException e) {
             catchTransactionalException(connection, e);
         } finally {
@@ -328,30 +331,16 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
         }
     }
 
-    private UserProjection getUserProjectionFromResult(ResultSet rs) throws SQLException {
-        UserProjection user = new UserProjection();
-        logger.debug("User found from db: " + rs.getString("username"));
-        user.setId(rs.getLong("id"));
-        user.setUserName(rs.getString("username"));
-        user.setEmail(rs.getString("email"));
-        user.setPassword(rs.getString("password"));
-        List<Role> roles = getUserRoles(rs.getLong("user_id"));
-        user.setRoles(roles);
-
-        return user;
-    }
-
     private void deleteUserRoles(Connection connection, Collection<Role> roles, Long userId) throws SQLException, OperationFailedException {
         for (Role role:
              roles) {
-            deleteRoleFromUsersRoles(connection, role.getId(), userId);
+            deleteRoleFromUsersRoles(connection, userId, role.getId());
         }
     }
 
-    private void deleteRoleFromUsersRoles(Connection connection, Long roleId, Long userId) throws SQLException, OperationFailedException {
+    private void deleteRoleFromUsersRoles(Connection connection, Long userId, Long roleId) throws SQLException, OperationFailedException {
         try(PreparedStatement ps = connection.prepareStatement(
-                    getDeleteFromUsersRolesQuery()
-                    )) {
+                    getDeleteFromUsersRolesQuery())) {
             ps.setLong(1, userId);
             ps.setLong(2, roleId);
 
@@ -397,6 +386,19 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
                 throw new SQLException("Failed to close connection");
             }
         }
+    }
+
+    private UserProjection getUserProjectionFromResult(ResultSet rs) throws SQLException {
+        UserProjection user = new UserProjection();
+        logger.debug("User found from db: " + rs.getString("username"));
+        user.setId(rs.getLong("id"));
+        user.setUserName(rs.getString("username"));
+        user.setEmail(rs.getString("email"));
+        user.setPassword(rs.getString("password"));
+        List<Role> roles = getUserRoles(rs.getLong("user_id"));
+        user.setRoles(roles);
+
+        return user;
     }
 
     @Override
@@ -489,7 +491,7 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
     }
 
     @Override
-    public void updateDomain(ResultSet rs, UserEntity user) throws SQLException, OperationFailedException {
+    public void updateDomain(ResultSet rs, UserEntity user) throws SQLException {
         rs.updateString("username", user.getUserName());
         rs.updateString("fullname", user.getFullName());
         rs.updateString("email", user.getEmail());

@@ -18,15 +18,15 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class TransactionDao extends AbstractDao<Transaction, Long> {
     private static final Logger logger = LoggerFactory.getLogger(TransactionDao.class);
+
 
     private final DataSource dataSource;
     private final AccountDao accountDao;
@@ -44,18 +44,22 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
     }
 
     @Override
-    public Transaction findById(Long id) throws Exception {
+    public Transaction findById(Long id) throws SQLException {
         return executeFindByIdQuery(id);
     }
 
     @Override
-    public List<Transaction> findAll() throws Exception {
+    public List<Transaction> findAll() throws SQLException {
         return executeFindAllQuery();
     }
 
     /**
-     * Returns inserted transaction
-     * @return inserted transaction if success
+     * Inserts transaction entity into database
+     * @param transaction to be inserted
+     * @return created transaction entity
+     * @throws SQLException if database access error occurred, if underlying query is incorrect
+     * @throws OperationFailedException if transaction id was not generated
+     * @throws TransactionAlreadyExistsException if transaction found in database
      */
     @Override
     public Transaction insert(Transaction transaction) throws SQLException, OperationFailedException, TransactionAlreadyExistsException {
@@ -63,6 +67,7 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
         if (alreadyExists) {
             throw new TransactionAlreadyExistsException("Transaction already exists");
         }
+
         return executeInsertQuery(transaction);
     }
 
@@ -130,9 +135,9 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
              )) {
             ps.setLong(1, userId);
             ps.setTimestamp(2,
-                    Timestamp.valueOf(LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)));
+                    Timestamp.from(Timestamp.valueOf(LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)).toInstant()));
             ps.setTimestamp(3,
-                    Timestamp.valueOf(LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIDNIGHT)));
+                    Timestamp.from(Timestamp.valueOf(LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIDNIGHT)).toInstant()));
             ResultSet rs = ps.executeQuery();
             List<Transaction> transactions = new ArrayList<>();
             while (rs.next()) {
@@ -185,7 +190,7 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
 
     @Override
     protected String getFindDomainQuery() {
-        return "SELECT * FROM transactions WHERE transfer=? AND type=? AND ts=? AND account_id=? AND category_id=?";
+        return "SELECT * FROM transactions WHERE transfer=? AND type=? AND account_id=? AND category_id=? AND ts=?";
     }
 
     @Override
@@ -194,8 +199,9 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
         ps.setString(2, transaction.getOperation().name());
         ps.setLong(3, transaction.getAccount().getId());
         ps.setLong(4, transaction.getCategory().getId());
-        Timestamp timestamp = Timestamp.valueOf(transaction.getTimestamp());
+        Timestamp timestamp = new Timestamp(transaction.getTimestamp().toEpochMilli());
         ps.setTimestamp(5, timestamp);
+        logger.debug("Timestamp to insert: " + timestamp);
     }
 
     @Override
@@ -207,9 +213,10 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
     public void setupFindDomainQuery(PreparedStatement ps, Transaction transaction) throws SQLException {
         ps.setBigDecimal(1, transaction.getSum());
         ps.setString(2, transaction.getOperation().name());
-        ps.setTimestamp(3, Timestamp.valueOf(transaction.getTimestamp()));
-        ps.setLong(4, transaction.getAccount().getId());
-        ps.setLong(5, transaction.getCategory().getId());
+        ps.setLong(3, transaction.getAccount().getId());
+        ps.setLong(4, transaction.getCategory().getId());
+        ps.setTimestamp(5, new Timestamp(transaction.getTimestamp().toEpochMilli()));
+        logger.debug("Timestamp to find: " + Timestamp.from(transaction.getTimestamp()));
     }
 
     @Override
@@ -243,13 +250,16 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
         transaction.setCategory(category);
 
         Timestamp timestamp = rs.getTimestamp("ts");
-        transaction.setTimestamp(timestamp.toLocalDateTime());
+        logger.debug("Timestamp of transaction from db: " + timestamp);
+        logger.debug("Timestamp Instant of transaction from db: " + timestamp.toInstant());
+//        transaction.setTimestamp(timestamp.toInstant().atOffset(ZoneOffset.UTC).toLocalDateTime());
+        transaction.setTimestamp(Instant.ofEpochMilli(timestamp.getTime()));
 
         return transaction;
     }
 
     @Override
-    public void updateDomain(ResultSet rs, Transaction transaction) throws SQLException, OperationFailedException {
+    public void updateDomain(ResultSet rs, Transaction transaction) throws SQLException {
         rs.updateBigDecimal("transfer", transaction.getSum());
         rs.updateString("type", transaction.getOperation().name());
         rs.updateLong("account_id", transaction.getAccount().getId());
