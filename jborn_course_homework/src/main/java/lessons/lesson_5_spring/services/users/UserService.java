@@ -1,6 +1,7 @@
 package lessons.lesson_5_spring.services.users;
 
 import lessons.lesson_5_spring.dao.users.UserDao;
+import lessons.lesson_5_spring.entities.users.Role;
 import lessons.lesson_5_spring.entities.users.UserEntity;
 import lessons.lesson_5_spring.exceptions.already_exists_exception.UserAlreadyExistsException;
 import lessons.lesson_5_spring.exceptions.not_found_exception.RoleNotFoundException;
@@ -35,14 +36,15 @@ public class UserService implements AbstractService<UserEntity, Long> {
     }
 
     /**
-     * Inserts new user entity into database, checking if already exists in the database by unique username and unique email
+     * Inserts new user entity into database, checking first if already exists in the database by unique email and
+     * then by unique username
      * Encodes password before insertion
      * @param user entity to insert into database
      * @return user entity with generated id
      * @throws UserAlreadyExistsException if user found in the database by username or email
      * @throws SQLException if database access error occurred, if underlying query failed
-     * @throws OperationFailedException if key generation for inserted user failed,
-     * if insertion of ROLE_USER for given user failed
+     * @throws OperationFailedException if id generation for inserted user failed,
+     * if id generation for ROLE_USER for given user failed, if ROLE_USER for given user id already exists in the database
      */
     @Override
     public UserEntity insert(UserEntity user) throws UserAlreadyExistsException, SQLException, OperationFailedException {
@@ -65,8 +67,21 @@ public class UserService implements AbstractService<UserEntity, Long> {
         return user;
     }
 
+    /**
+     * Returns updated user, encoding new password before update.
+     * Updates related table users_roles with many-to-many relation in the same transaction.
+     * If transaction fails at any stage, makes transaction rollback
+     * @throws SQLException if database access error occurred, if underlying query is incorrect
+     * @throws UserNotFoundException if given user not found in the database
+     * @throws OperationFailedException if update of user roles failed  (either deletion of unnecessary roles
+     * or insertion of new roles into many-to-many related table users_roles)
+     * @return updated user entity if success
+     */
     @Override
     public UserEntity update(UserEntity user) throws SQLException, UserNotFoundException, OperationFailedException {
+        String password = user.getPassword();
+        user.setPassword(encoder.encode(password));
+
         return userDao.update(user);
     }
 
@@ -110,11 +125,15 @@ public class UserService implements AbstractService<UserEntity, Long> {
 
     /**
      * Checks provided password and password from the given user entity with BCryptEncoder
-     * @param password to check for match
-     * @param user entity to be referenced given password against
+     * @param passwordTry to check for match
+     * @param originUserEntity entity containing the user entity to be the reference to check password match
      * @return true if both password encoded with BCryptEncoder match or else false
      */
-    public boolean checkPasswordCorrect(String password, UserEntity user) {
-        return encoder.matches(password, user.getPassword());
+    public boolean checkPasswordCorrect(String passwordTry, UserEntity originUserEntity) {
+        return encoder.matches(passwordTry, originUserEntity.getPassword());
+    }
+
+    public List<Role> getUserRoles(Long userId) throws SQLException {
+        return userDao.getUserRoles(userId);
     }
 }

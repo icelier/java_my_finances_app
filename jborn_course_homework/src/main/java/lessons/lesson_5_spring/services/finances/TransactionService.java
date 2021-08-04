@@ -40,15 +40,23 @@ public class TransactionService implements AbstractService<Transaction, Long> {
     }
 
     @Override
-    public Transaction findById(Long id) throws Exception {
+    public Transaction findById(Long id) throws SQLException {
         return transactionDao.findById(id);
     }
 
     @Override
-    public List<Transaction> findAll() throws Exception {
+    public List<Transaction> findAll() throws SQLException {
         return transactionDao.findAll();
     }
 
+    /**
+     * Inserts transaction entity into database with id generation
+     * @param transaction to be inserted
+     * @return created transaction entity with id generated
+     * @throws SQLException if database access error occurred, if underlying query is incorrect
+     * @throws OperationFailedException if transaction id was not generated
+     * @throws TransactionAlreadyExistsException if transaction found in database
+     */
     @Override
     public Transaction insert(Transaction transaction) throws SQLException, OperationFailedException, TransactionAlreadyExistsException {
         return transactionDao.insert(transaction);
