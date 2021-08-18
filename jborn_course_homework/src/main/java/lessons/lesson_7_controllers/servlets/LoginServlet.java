@@ -1,16 +1,15 @@
-package lessons.lesson_6_servlets.servlets;
+package lessons.lesson_7_controllers.servlets;
 
-import lessons.lesson_6_servlets.entities.users.UserEntity;
-import lessons.lesson_6_servlets.exceptions.already_exists_exception.UserAlreadyExistsException;
-import lessons.lesson_6_servlets.exceptions.operation_failed.OperationFailedException;
-import lessons.lesson_6_servlets.services.users.UserService;
+import lessons.lesson_7_controllers.entities.users.UserEntity;
+import lessons.lesson_7_controllers.exceptions.already_exists_exception.UserAlreadyExistsException;
+import lessons.lesson_7_controllers.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_7_controllers.services.users.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
 
-@Controller
 public class LoginServlet extends HttpServlet {
     public static final String PATH = "/my-finances/login";
     private AutowireCapableBeanFactory ctx;
@@ -50,6 +48,7 @@ public class LoginServlet extends HttpServlet {
         Long userId = null;
         try {
             UserEntity user = userService.findByUserName(userName);
+             userId = null;
             if (user == null) {
                 UserEntity newUser = new UserEntity(userName, password, email);
                 userId = userService.insert(newUser).getId();
@@ -81,6 +80,7 @@ public class LoginServlet extends HttpServlet {
         Long userId = null;
         try {
             UserEntity user = userService.findByUserName(userName);
+            userId = null;
             if (user == null) {
                 UserEntity newUser = new UserEntity(userName, password, email);
                 userId = userService.insert(newUser).getId();

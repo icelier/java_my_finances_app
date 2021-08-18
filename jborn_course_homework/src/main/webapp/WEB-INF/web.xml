@@ -19,32 +19,11 @@
 
     <servlet>
         <servlet-name>MainServlet</servlet-name>
-        <servlet-class>lessons.lesson_6_servlets.servlets.MainServlet</servlet-class>
+        <servlet-class>lessons.lesson_7_controllers.servlets.MainServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
         <servlet-name>MainServlet</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>/*</url-pattern>
     </servlet-mapping>
-
-    <servlet>
-        <servlet-name>LoginServlet</servlet-name>
-        <servlet-class>lessons.lesson_6_servlets.servlets.LoginServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>LoginServlet</servlet-name>
-        <url-pattern>/login</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>TransactionServlet</servlet-name>
-        <servlet-class>lessons.lesson_6_servlets.servlets.TransactionServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>TransactionServlet</servlet-name>
-        <url-pattern>/transactions</url-pattern>
-    </servlet-mapping>
-
 </web-app>
