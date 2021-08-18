@@ -1,24 +1,25 @@
-package lessons.lesson_6_servlets.dao.finances;
+package lessons.lesson_5_spring.dao.finances;
 
-import lessons.lesson_6_servlets.dao.AbstractDao;
-import lessons.lesson_6_servlets.entities.finances.Account;
-import lessons.lesson_6_servlets.entities.finances.Category;
-import lessons.lesson_6_servlets.entities.finances.Operation;
-import lessons.lesson_6_servlets.entities.finances.Transaction;
-import lessons.lesson_6_servlets.exceptions.already_exists_exception.TransactionAlreadyExistsException;
-import lessons.lesson_6_servlets.exceptions.not_found_exception.DataNotFoundException;
-import lessons.lesson_6_servlets.exceptions.not_found_exception.TransactionNotFoundException;
-import lessons.lesson_6_servlets.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_5_spring.dao.AbstractDao;
+import lessons.lesson_5_spring.dao.Dao;
+import lessons.lesson_5_spring.entities.finances.Account;
+import lessons.lesson_5_spring.entities.finances.Category;
+import lessons.lesson_5_spring.entities.finances.Operation;
+import lessons.lesson_5_spring.entities.finances.Transaction;
+import lessons.lesson_5_spring.exceptions.already_exists_exception.AccountAlreadyExistsException;
+import lessons.lesson_5_spring.exceptions.already_exists_exception.TransactionAlreadyExistsException;
+import lessons.lesson_5_spring.exceptions.not_found_exception.AccountNotFoundException;
+import lessons.lesson_5_spring.exceptions.not_found_exception.DataNotFoundException;
+import lessons.lesson_5_spring.exceptions.not_found_exception.TransactionNotFoundException;
+import lessons.lesson_5_spring.exceptions.operation_failed.OperationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,7 +112,6 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
     }
 
     public List<Transaction> findAllByUserId(Long userId) throws SQLException {
-        logger.debug("user id = " + userId);
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(
                      getFindByUserIdQuery()

@@ -1,7 +1,8 @@
-package lessons.lesson_6_servlets.terminal_views;
+package lessons.lesson_5_spring.terminal_views;
 
-import lessons.lesson_6_servlets.entities.finances.Account;
-import lessons.lesson_6_servlets.services.finances.AccountService;
+import lessons.lesson_5_spring.entities.finances.Account;
+import lessons.lesson_5_spring.services.RequestResult;
+import lessons.lesson_5_spring.services.finances.AccountService;
 import org.springframework.stereotype.Controller;
 
 import java.io.PrintWriter;

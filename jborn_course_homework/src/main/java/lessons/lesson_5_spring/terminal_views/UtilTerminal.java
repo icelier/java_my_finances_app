@@ -1,4 +1,4 @@
-package lessons.lesson_6_servlets.terminal_views;
+package lessons.lesson_5_spring.terminal_views;
 
 import org.springframework.stereotype.Controller;
 

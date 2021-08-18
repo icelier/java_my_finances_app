@@ -1,11 +1,11 @@
-package lessons.lesson_6_servlets.terminal_views;
+package lessons.lesson_5_spring.terminal_views;
 
-import lessons.lesson_6_servlets.entities.users.UserEntity;
-import lessons.lesson_6_servlets.entities.users.UserLoginProjection;
-import lessons.lesson_6_servlets.exceptions.already_exists_exception.UserAlreadyExistsException;
-import lessons.lesson_6_servlets.exceptions.not_match_exceptions.PasswordNotMatchException;
-import lessons.lesson_6_servlets.exceptions.operation_failed.OperationFailedException;
-import lessons.lesson_6_servlets.services.users.UserService;
+import lessons.lesson_5_spring.entities.users.UserEntity;
+import lessons.lesson_5_spring.entities.users.UserLoginProjection;
+import lessons.lesson_5_spring.exceptions.already_exists_exception.UserAlreadyExistsException;
+import lessons.lesson_5_spring.exceptions.not_match_exceptions.PasswordNotMatchException;
+import lessons.lesson_5_spring.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_5_spring.services.users.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;

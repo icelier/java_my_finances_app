@@ -1,15 +1,18 @@
-package lessons.lesson_6_servlets.terminal_views;
+package lessons.lesson_5_spring.terminal_views;
 
-import lessons.lesson_6_servlets.entities.users.UserLoginProjection;
-import lessons.lesson_6_servlets.exceptions.not_match_exceptions.AccountNotMatchException;
-import lessons.lesson_6_servlets.exceptions.not_match_exceptions.PasswordNotMatchException;
-import lessons.lesson_6_servlets.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_5_spring.entities.finances.Account;
+import lessons.lesson_5_spring.entities.finances.Transaction;
+import lessons.lesson_5_spring.entities.users.UserLoginProjection;
+import lessons.lesson_5_spring.exceptions.not_match_exceptions.AccountNotMatchException;
+import lessons.lesson_5_spring.exceptions.not_match_exceptions.PasswordNotMatchException;
+import lessons.lesson_5_spring.exceptions.operation_failed.OperationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Scanner;
 
 @Controller

@@ -18,11 +18,11 @@ public class MainServlet extends HttpServlet {
 
         Long userId = (Long) req.getSession().getAttribute("userId");
         if (userId == null) {
-            resp.sendRedirect("/my-finances/login");
+            resp.sendRedirect(LoginServlet.PATH);
 //            RequestDispatcher view = req.getRequestDispatcher("webapp/login.html");
 //            view.forward(req, resp);
         } else {
-            writer.println("Hello, " + req.getParameter("username") + "!");
+            writer.println("Hello, user" + userId + "!");
         }
     }
 

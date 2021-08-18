@@ -1,14 +1,15 @@
-package lessons.lesson_6_servlets.terminal_views;
+package lessons.lesson_5_spring.terminal_views;
 
-import lessons.lesson_6_servlets.entities.finances.Account;
-import lessons.lesson_6_servlets.entities.finances.Transaction;
-import lessons.lesson_6_servlets.entities.users.UserLoginProjection;
-import lessons.lesson_6_servlets.exceptions.already_exists_exception.TransactionAlreadyExistsException;
-import lessons.lesson_6_servlets.exceptions.not_found_exception.AccountNotFoundException;
-import lessons.lesson_6_servlets.exceptions.not_found_exception.CategoryNotFoundException;
-import lessons.lesson_6_servlets.exceptions.not_match_exceptions.AccountNotMatchException;
-import lessons.lesson_6_servlets.exceptions.operation_failed.OperationFailedException;
-import lessons.lesson_6_servlets.services.finances.TransactionService;
+import lessons.lesson_5_spring.entities.finances.Account;
+import lessons.lesson_5_spring.entities.finances.Transaction;
+import lessons.lesson_5_spring.entities.users.UserLoginProjection;
+import lessons.lesson_5_spring.exceptions.already_exists_exception.TransactionAlreadyExistsException;
+import lessons.lesson_5_spring.exceptions.not_found_exception.AccountNotFoundException;
+import lessons.lesson_5_spring.exceptions.not_found_exception.CategoryNotFoundException;
+import lessons.lesson_5_spring.exceptions.not_match_exceptions.AccountNotMatchException;
+import lessons.lesson_5_spring.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_5_spring.services.RequestResult;
+import lessons.lesson_5_spring.services.finances.TransactionService;
 import org.springframework.stereotype.Controller;
 
 import java.io.PrintWriter;

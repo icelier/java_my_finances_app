@@ -1,6 +1,6 @@
-package lessons.lesson_6_servlets.terminal_views;
+package lessons.lesson_5_spring.terminal_views;
 
-import lessons.lesson_6_servlets.services.ServiceConfiguration;
+import lessons.lesson_5_spring.services.ServiceConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
