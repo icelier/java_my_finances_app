@@ -15,6 +15,10 @@
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+
+<!--        <maven.test.skip>false</maven.test.skip>-->
+<!--        <skipTests>${maven.test.skip}</skipTests>-->
+<!--        <skipITs>${skipTests}</skipITs>-->
     </properties>
 
     <dependencies>
@@ -51,8 +55,9 @@
 
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>2.0.2-beta</version>
+            <artifactId>mockito-core</artifactId>
+            <version>3.11.2</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>

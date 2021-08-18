@@ -111,6 +111,7 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
     }
 
     public List<Transaction> findAllByUserId(Long userId) throws SQLException {
+        logger.debug("user id = " + userId);
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(
                      getFindByUserIdQuery()

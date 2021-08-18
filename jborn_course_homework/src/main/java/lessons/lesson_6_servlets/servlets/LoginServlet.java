@@ -10,17 +10,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.SQLException;
 
 @Controller
 public class LoginServlet extends HttpServlet {
+    public static final String PATH = "/my-finances/login";
     private AutowireCapableBeanFactory ctx;
 
     @Autowired
@@ -43,24 +43,30 @@ public class LoginServlet extends HttpServlet {
         String password = req.getParameter("password");
         String email = req.getParameter("email");
 
+        if (userName == null) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+        Long userId = null;
         try {
-            UserEntity userFromDb = userService.findByUserName(userName);
-            if (userFromDb == null) {
+            UserEntity user = userService.findByUserName(userName);
+             userId = null;
+            if (user == null) {
                 UserEntity newUser = new UserEntity(userName, password, email);
-
-                Long userId = userService.insert(newUser).getId();
-                HttpSession session = req.getSession();
-                session.setAttribute("userId", userId);
+                userId = userService.insert(newUser).getId();
+            } else {
+                userId = user.getId();
             }
-        } catch (UserAlreadyExistsException e) {
-            PrintWriter writer = resp.getWriter();
-            writer.println("You are already registered!");
-                } catch (SQLException throwables) {
-                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                } catch (OperationFailedException e) {
-                    resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                }
-
+        } catch (SQLException | OperationFailedException | UserAlreadyExistsException e) {
+            e.printStackTrace();
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } finally {
+            //            req.setAttribute("userId", userId);
+//            RequestDispatcher dispatcher = req.getRequestDispatcher(TransactionServlet.PATH);
+//            dispatcher.forward(req, resp);
+            req.getSession().setAttribute("userId", userId);
+            resp.sendRedirect(TransactionServlet.PATH);
+        }
     }
 
     @Override
@@ -69,23 +75,26 @@ public class LoginServlet extends HttpServlet {
         String password = req.getParameter("password");
         String email = req.getParameter("email");
 
+        if (userName == null) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
         Long userId = null;
         try {
-            UserEntity userFromDb = userService.findByUserName(userName);
-            if (userFromDb == null) {
+            UserEntity user = userService.findByUserName(userName);
+            userId = null;
+            if (user == null) {
                 UserEntity newUser = new UserEntity(userName, password, email);
                 userId = userService.insert(newUser).getId();
-                HttpSession session = req.getSession();
-                session.setAttribute("userId", userId);
             } else {
-                // TODO -?
+                userId = user.getId();
             }
-        } catch (UserAlreadyExistsException e) {
-                e.printStackTrace();
-                // TODO - ?
-        } catch (Exception e) {
+        } catch (SQLException | OperationFailedException | UserAlreadyExistsException e) {
             e.printStackTrace();
-            resp.setStatus(HttpServletResponse.SC_CONFLICT);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } finally {
+            req.getSession().setAttribute("userId", userId);
+            resp.sendRedirect(TransactionServlet.PATH);
         }
     }
 }
