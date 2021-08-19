@@ -1,14 +1,14 @@
-package lessons.lesson_7_controllers.services.users;
+package lessons.lesson_8_hibernate.services.users;
 
-import lessons.lesson_7_controllers.dao.users.UserDao;
-import lessons.lesson_7_controllers.entities.users.Role;
-import lessons.lesson_7_controllers.entities.users.UserEntity;
-import lessons.lesson_7_controllers.exceptions.already_exists_exception.UserAlreadyExistsException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.RoleNotFoundException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.UserNotFoundException;
-import lessons.lesson_7_controllers.exceptions.not_match_exceptions.PasswordNotMatchException;
-import lessons.lesson_7_controllers.exceptions.operation_failed.OperationFailedException;
-import lessons.lesson_7_controllers.services.AbstractService;
+import lessons.lesson_8_hibernate.dao.users.UserDao;
+import lessons.lesson_8_hibernate.entities.users.Role;
+import lessons.lesson_8_hibernate.entities.users.UserEntity;
+import lessons.lesson_8_hibernate.exceptions.already_exists_exception.UserAlreadyExistsException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.RoleNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.UserNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.not_match_exceptions.PasswordNotMatchException;
+import lessons.lesson_8_hibernate.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_8_hibernate.services.AbstractService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -133,4 +133,7 @@ public class UserService implements AbstractService<UserEntity, Long> {
         return encoder.matches(passwordTry, originUserEntity.getPassword());
     }
 
+    public List<Role> getUserRoles(Long userId) throws SQLException {
+        return userDao.getUserRoles(userId);
+    }
 }

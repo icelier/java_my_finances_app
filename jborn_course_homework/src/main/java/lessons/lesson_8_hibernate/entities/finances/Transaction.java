@@ -1,6 +1,9 @@
-package lessons.lesson_7_controllers.entities.finances;
+package lessons.lesson_8_hibernate.entities.finances;
 
-import lessons.lesson_7_controllers.entities.DatabaseEntity;
+import lessons.lesson_8_hibernate.entities.DatabaseEntity;
+import lessons.lesson_8_hibernate.entities.finances.Account;
+import lessons.lesson_8_hibernate.entities.finances.Category;
+import lessons.lesson_8_hibernate.entities.finances.Operation;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,7 +21,7 @@ public class Transaction implements DatabaseEntity {
 
     private Instant timestamp;
 
-    private Long accountId;
+    private Account account;
 
     private Category category;
 
@@ -46,12 +49,12 @@ public class Transaction implements DatabaseEntity {
         this.operation = operation;
     }
 
-    public Long getAccountId() {
-        return accountId;
+    public Account getAccount() {
+        return account;
     }
 
-    public void setAccountId(Long accountId) {
-        this.accountId = accountId;
+    public void setAccount(Account account) {
+        this.account = account;
     }
 
     public Category getCategory() {
@@ -75,16 +78,16 @@ public class Transaction implements DatabaseEntity {
         this.timestamp = Instant.now();
     }
 
-    public Transaction(Long id, BigDecimal sum, Operation operation, Long accountId, Category category) {
-        this(sum, operation, accountId, category);
+    public Transaction(Long id, BigDecimal sum, Operation operation, Account account, Category category) {
+        this(sum, operation, account, category);
         this.id = id;
     }
 
-    public Transaction(BigDecimal sum, Operation operation, Long accountId, Category category) {
+    public Transaction(BigDecimal sum, Operation operation, Account account, Category category) {
         this();
         this.sum = sum.setScale(2, RoundingMode.HALF_UP);
         this.operation = operation;
-        this.accountId = accountId;
+        this.account = account;
         this.category = category;
     }
 
@@ -93,15 +96,12 @@ public class Transaction implements DatabaseEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Transaction that = (Transaction) o;
-        return getSum().equals(that.getSum()) && getOperation() == that.getOperation() &&
-                getTimestamp().equals(that.getTimestamp()) &&
-                getAccountId().equals(that.getAccountId()) &&
-                getCategory().equals(that.getCategory());
+        return getSum().equals(that.getSum()) && getOperation() == that.getOperation() && getTimestamp().equals(that.getTimestamp()) && getAccount().equals(that.getAccount()) && getCategory().equals(that.getCategory());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getSum(), getOperation(), getTimestamp(), getAccountId(), getCategory());
+        return Objects.hash(getSum(), getOperation(), getTimestamp(), getAccount(), getCategory());
     }
 
     @Override
@@ -110,7 +110,7 @@ public class Transaction implements DatabaseEntity {
                 operation +
                 ": sum=" + sum +
                 ", timestamp=" + timestamp +
-                ", category =" + category +
+                ", category=" + category.getTitle() +
                 '}';
     }
 

@@ -1,10 +1,10 @@
-package lessons.lesson_7_controllers.entities.finances;
+package lessons.lesson_8_hibernate.entities.finances;
 
-import lessons.lesson_7_controllers.entities.DatabaseEntity;
-import lessons.lesson_7_controllers.entities.users.UserEntity;
+import lessons.lesson_8_hibernate.entities.DatabaseEntity;
+import lessons.lesson_8_hibernate.entities.finances.AccountType;
+import lessons.lesson_8_hibernate.entities.users.UserEntity;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Objects;
 
 public class Account implements DatabaseEntity {
@@ -16,7 +16,7 @@ public class Account implements DatabaseEntity {
 
     private AccountType type;
 
-    private Long userId;
+    private UserEntity user;
 
     public Long getId() {
         return id;
@@ -39,7 +39,7 @@ public class Account implements DatabaseEntity {
     }
 
     public void setSum(BigDecimal sum) {
-        this.sum = sum.setScale(2, RoundingMode.HALF_UP);
+        this.sum = sum;
     }
 
     public AccountType getType() {
@@ -50,30 +50,35 @@ public class Account implements DatabaseEntity {
         this.type = type;
     }
 
-    public Long getUserId() {
-        return userId;
+    public UserEntity getUser() {
+        return user;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUser(UserEntity user) {
+        this.user = user;
     }
 
     public Account() {}
 
-    public Account(String name, BigDecimal sum, AccountType type, Long userId) {
-        this.name = name;
-        this.sum = sum.setScale(2, RoundingMode.HALF_UP);
-        this.type = type;
-        this.userId = userId;
-    }
-
-    public Account(Long id, String name, BigDecimal sum, AccountType type, Long userId) {
-        this(name, sum, type, userId);
+    public Account(Long id, String name, BigDecimal sum, AccountType type, UserEntity user) {
         this.id = id;
+        this.name = name;
+        this.sum = sum;
+        this.type = type;
+        this.user = user;
     }
 
-    public Account(String name, AccountType type, Long userId) {
-        this(name, BigDecimal.ZERO, type, userId);
+    public Account(String name, BigDecimal sum, AccountType type, UserEntity user) {
+        this.name = name;
+        this.sum = sum;
+        this.type = type;
+        this.user = user;
+    }
+    public Account(String name, AccountType type, UserEntity user) {
+        this.name = name;
+        this.sum = BigDecimal.ZERO;
+        this.type = type;
+        this.user = user;
     }
 
     @Override
@@ -86,13 +91,12 @@ public class Account implements DatabaseEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Account account = (Account) o;
-        return getName().equals(account.getName()) && getType().equals(account.getType()) &&
-                getUserId().equals(account.getUserId());
+        return getName().equals(account.getName()) && getType().equals(account.getType()) && getUser().equals(account.getUser());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getName(), getSum(), getType(), getUserId());
+        return Objects.hash(getName(), getSum(), getType(), getUser());
     }
 
     @Override

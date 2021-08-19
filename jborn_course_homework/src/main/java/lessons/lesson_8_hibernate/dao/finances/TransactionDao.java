@@ -1,14 +1,16 @@
-package lessons.lesson_7_controllers.dao.finances;
+package lessons.lesson_8_hibernate.dao.finances;
 
-import lessons.lesson_7_controllers.dao.AbstractDao;
-import lessons.lesson_7_controllers.entities.finances.Account;
-import lessons.lesson_7_controllers.entities.finances.Category;
-import lessons.lesson_7_controllers.entities.finances.Operation;
-import lessons.lesson_7_controllers.entities.finances.Transaction;
-import lessons.lesson_7_controllers.exceptions.already_exists_exception.TransactionAlreadyExistsException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.DataNotFoundException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.TransactionNotFoundException;
-import lessons.lesson_7_controllers.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_8_hibernate.dao.AbstractDao;
+import lessons.lesson_8_hibernate.dao.finances.AccountDao;
+import lessons.lesson_8_hibernate.dao.finances.CategoryDao;
+import lessons.lesson_8_hibernate.entities.finances.Account;
+import lessons.lesson_8_hibernate.entities.finances.Category;
+import lessons.lesson_8_hibernate.entities.finances.Operation;
+import lessons.lesson_8_hibernate.entities.finances.Transaction;
+import lessons.lesson_8_hibernate.exceptions.already_exists_exception.TransactionAlreadyExistsException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.DataNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.TransactionNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.operation_failed.OperationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -156,33 +158,26 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
 
     @Override
     protected String getFindByIdQuery() {
-        return "SELECT tr.*, cat.title FROM transactions tr " +
-                "LEFT OUTER JOIN categories cat " +
-                "ON tr.category_id=cat.id " +
-                " WHERE tr.id=?";
+        return "SELECT * FROM transactions WHERE id=?";
     }
 
     private String getFindByUserIdQuery() {
-        return "SELECT tr.*, cat.title FROM transactions tr " +
-                "LEFT OUTER JOIN categories cat " +
-                "ON tr.category_id=cat.id " +
-                "WHERE tr.user_id=?";
+        return "SELECT transactions.* " +
+                "FROM transactions " +
+                "INNER JOIN accounts " +
+                "ON transactions.account_id=accounts.id " +
+                "WHERE accounts.user_id=?";
     }
 
     private String getFindByUserIdTodayQuery() {
-        return "SELECT tr.*, cat.title FROM transactions tr " +
-                "LEFT OUTER JOIN categories cat " +
-                "ON tr.category_id=cat.id " +
-                "WHERE tr.user_id=?" +
-                "AND tr.ts BETWEEN ? AND ?";
+        return "SELECT transactions.* FROM transactions INNER JOIN accounts ON " +
+                "transactions.account_id=accounts.id WHERE accounts.user_id=? " +
+                "AND transactions.ts BETWEEN ? AND ?";
     }
 
     @Override
     protected String getFindAllQuery() {
-        return "SELECT tr.*, cat.title FROM transactions tr " +
-                "LEFT OUTER JOIN categories cat " +
-                "ON tr.category_id=cat.id " +
-                "ORDER BY tr.ts DESC";
+        return "SELECT * FROM transactions ORDER BY ts DESC";
     }
 
     @Override
@@ -197,18 +192,14 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
 
     @Override
     protected String getFindDomainQuery() {
-        return "SELECT tr.*, cat.title FROM transactions tr " +
-                "LEFT OUTER JOIN categories cat " +
-                "ON tr.category_id=cat.id " +
-                "WHERE tr.transfer=? AND tr.type=? AND tr.account_id=? " +
-                "AND tr.category_id=? AND tr.ts=?";
+        return "SELECT * FROM transactions WHERE transfer=? AND type=? AND account_id=? AND category_id=? AND ts=?";
     }
 
     @Override
     public void setupInsertQuery(PreparedStatement ps, Transaction transaction) throws SQLException {
         ps.setBigDecimal(1, transaction.getSum());
         ps.setString(2, transaction.getOperation().name());
-        ps.setLong(3, transaction.getAccountId());
+        ps.setLong(3, transaction.getAccount().getId());
         ps.setLong(4, transaction.getCategory().getId());
         Timestamp timestamp = new Timestamp(transaction.getTimestamp().toEpochMilli());
         ps.setTimestamp(5, timestamp);
@@ -224,7 +215,7 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
     public void setupFindDomainQuery(PreparedStatement ps, Transaction transaction) throws SQLException {
         ps.setBigDecimal(1, transaction.getSum());
         ps.setString(2, transaction.getOperation().name());
-        ps.setLong(3, transaction.getAccountId());
+        ps.setLong(3, transaction.getAccount().getId());
         ps.setLong(4, transaction.getCategory().getId());
         ps.setTimestamp(5, new Timestamp(transaction.getTimestamp().toEpochMilli()));
         logger.debug("Timestamp to find: " + Timestamp.from(transaction.getTimestamp()));
@@ -252,11 +243,12 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
             throw new SQLException("Transaction type mismatch");
         }
 
-        transaction.setAccountId(rs.getLong("account_id"));
+        Long accountId = rs.getLong("account_id");
+        Account account = accountDao.findById(accountId);
+        transaction.setAccount(account);
+
         Long categoryId = rs.getLong("category_id");
-        Category category = new Category();
-        category.setId(categoryId);
-        category.setTitle(rs.getString("title"));
+        Category category = categoryDao.findById(categoryId);
         transaction.setCategory(category);
 
         Timestamp timestamp = rs.getTimestamp("ts");
@@ -272,8 +264,8 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
     public void updateDomain(ResultSet rs, Transaction transaction) throws SQLException {
         rs.updateBigDecimal("transfer", transaction.getSum());
         rs.updateString("type", transaction.getOperation().name());
-        rs.updateLong("account_id", transaction.getAccountId());
-        rs.updateLong("category", transaction.getCategory().getId());
+        rs.updateLong("account_id", transaction.getAccount().getId());
+        rs.updateLong("category_id", transaction.getCategory().getId());
         rs.updateRow();
     }
 }
