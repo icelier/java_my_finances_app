@@ -1,13 +1,14 @@
-package lessons.lesson_7_controllers.dao.users;
+package lessons.lesson_8_hibernate.dao.users;
 
-import lessons.lesson_7_controllers.dao.AbstractDao;
-import lessons.lesson_7_controllers.entities.users.Role;
-import lessons.lesson_7_controllers.entities.users.UserEntity;
-import lessons.lesson_7_controllers.entities.users.UserProjection;
-import lessons.lesson_7_controllers.exceptions.already_exists_exception.UserAlreadyExistsException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.RoleNotFoundException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.UserNotFoundException;
-import lessons.lesson_7_controllers.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_8_hibernate.dao.AbstractDao;
+import lessons.lesson_8_hibernate.dao.users.RoleDao;
+import lessons.lesson_8_hibernate.entities.users.Role;
+import lessons.lesson_8_hibernate.entities.users.UserEntity;
+import lessons.lesson_8_hibernate.entities.users.UserProjection;
+import lessons.lesson_8_hibernate.exceptions.already_exists_exception.UserAlreadyExistsException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.RoleNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.UserNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.operation_failed.OperationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -189,16 +190,22 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
         }
     }
 
-     public List<Role> getUserRoles(ResultSet rs) throws SQLException {
-         List<Role> roles = new ArrayList<>();
-         while (rs.next()) {
-             Role role = new Role();
-             role.setId(rs.getLong("role_id"));
-             role.setName(rs.getString("name"));
-             roles.add(role);
-         }
+     public List<Role> getUserRoles(Long userId) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement ps = connection.prepareStatement(
+                     getFindRolesByUserIdQuery()
+             )) {
 
-         return roles;
+            ps.setLong(1, userId);
+            ResultSet rs = ps.executeQuery();
+            List<Role> roles = new ArrayList<>();
+            while (rs.next()) {
+                Role role = roleDao.getDomainFromQueryResult(rs);
+                roles.add(role);
+            }
+
+            return roles;
+        }
     }
 
     /**
@@ -389,7 +396,7 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
         user.setUserName(rs.getString("username"));
         user.setEmail(rs.getString("email"));
         user.setPassword(rs.getString("password"));
-        List<Role> roles = getUserRoles(rs);
+        List<Role> roles = getUserRoles(rs.getLong("user_id"));
         user.setRoles(roles);
 
         return user;
@@ -406,31 +413,20 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
 
     @Override
     protected String getFindByIdQuery() {
-        return "SELECT u.*, ur.role_id, r.name FROM users u " +
-                "LEFT OUTER JOIN users_roles ur ON u.id=ur.user_id " +
-                "LEFT OUTER JOIN roles r ON ur.role_id=r.id " +
-                "WHERE u.id=?";
+        return "SELECT * FROM users WHERE id=?";
     }
 
     private String getFindByUserNameQuery() {
-        return "SELECT u.*, ur.role_id, r.name FROM users u " +
-                "LEFT OUTER JOIN users_roles ur ON u.id=ur.user_id " +
-                "LEFT OUTER JOIN roles r ON ur.role_id=r.id " +
-                "WHERE u.username=?";
+        return "SELECT * FROM users WHERE username=?";
     }
 
     private String getFindByEmailQuery() {
-        return "SELECT u.*, ur.role_id, r.name FROM users u " +
-                "LEFT OUTER JOIN users_roles ur ON u.id=ur.user_id " +
-                "LEFT OUTER JOIN roles r ON ur.role_id=r.id " +
-                "WHERE u.email=?";
+        return "SELECT * FROM users WHERE email=?";
     }
 
     @Override
     protected String getFindAllQuery() {
-        return "SELECT u.*, ur.role_id, r.name FROM users u " +
-                "LEFT OUTER JOIN users_roles ur ON u.id=ur.user_id " +
-                "LEFT OUTER JOIN roles r ON ur.role_id=r.id ORDER BY u.id ASC";
+        return "SELECT * FROM users ORDER BY id ASC";
     }
 
     @Override
@@ -452,10 +448,7 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
 
     @Override
     protected String getFindDomainQuery() {
-        return "SELECT u.*, ur.role_id, r.name FROM users u " +
-                "LEFT OUTER JOIN users_roles ur ON u.id=ur.user_id " +
-                "LEFT OUTER JOIN roles r ON ur.role_id=r.id " +
-                "WHERE email=?";
+        return "SELECT * FROM users WHERE email=?";
     }
 
     @Override
@@ -492,7 +485,7 @@ public class UserDao extends AbstractDao<UserEntity, Long> {
         user.setEmail(rs.getString("email"));
         user.setPassword(rs.getString("password"));
         user.setAge(rs.getInt("age"));
-        List<Role> roles = getUserRoles(rs);
+        List<Role> roles = getUserRoles(rs.getLong("id"));
         user.setRoles(roles);
 
         return user;

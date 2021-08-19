@@ -1,17 +1,19 @@
-package lessons.lesson_7_controllers.services.finances;
+package lessons.lesson_8_hibernate.services.finances;
 
-import lessons.lesson_7_controllers.dao.finances.TransactionDao;
-import lessons.lesson_7_controllers.entities.finances.Account;
-import lessons.lesson_7_controllers.entities.finances.Category;
-import lessons.lesson_7_controllers.entities.finances.Operation;
-import lessons.lesson_7_controllers.entities.finances.Transaction;
-import lessons.lesson_7_controllers.exceptions.already_exists_exception.TransactionAlreadyExistsException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.AccountNotFoundException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.CategoryNotFoundException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.TransactionNotFoundException;
-import lessons.lesson_7_controllers.exceptions.not_match_exceptions.AccountNotMatchException;
-import lessons.lesson_7_controllers.exceptions.operation_failed.OperationFailedException;
-import lessons.lesson_7_controllers.services.AbstractService;
+import lessons.lesson_8_hibernate.dao.finances.TransactionDao;
+import lessons.lesson_8_hibernate.entities.finances.Account;
+import lessons.lesson_8_hibernate.entities.finances.Category;
+import lessons.lesson_8_hibernate.entities.finances.Operation;
+import lessons.lesson_8_hibernate.entities.finances.Transaction;
+import lessons.lesson_8_hibernate.exceptions.already_exists_exception.TransactionAlreadyExistsException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.AccountNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.CategoryNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.TransactionNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.not_match_exceptions.AccountNotMatchException;
+import lessons.lesson_8_hibernate.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_8_hibernate.services.AbstractService;
+import lessons.lesson_8_hibernate.services.finances.AccountService;
+import lessons.lesson_8_hibernate.services.finances.CategoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -172,7 +174,7 @@ public class TransactionService implements AbstractService<Transaction, Long> {
                                           BigDecimal sum,
                                           String category) throws SQLException, CategoryNotFoundException {
         Transaction transaction = new Transaction();
-        transaction.setAccountId(account.getId());
+        transaction.setAccount(account);
         transaction.setOperation(operation);
         transaction.setSum(sum);
         Category categoryType = categoryService.getByTitle(category);

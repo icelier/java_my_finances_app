@@ -69,7 +69,7 @@
         <addForeignKeyConstraint baseTableName="accounts" baseColumnNames="type_id" constraintName="fk_type_id"
                                  referencedTableName="account_types"
                                  referencedColumnNames="id"
-                                 onDelete="CASCADE"
+                                 onDelete="SET NULL"
                                  onUpdate="CASCADE"
         />
         <addForeignKeyConstraint baseTableName="accounts" baseColumnNames="user_id" constraintName="fk_accounts_user_id"
@@ -117,7 +117,7 @@
         <addForeignKeyConstraint baseTableName="users_roles" baseColumnNames="role_id" constraintName="fk_role_id"
                                  referencedTableName="roles"
                                  referencedColumnNames="id"
-                                 onDelete="CASCADE"
+                                 onDelete="SET NULL"
                                  onUpdate="CASCADE"
         />
     </changeSet>
@@ -177,7 +177,7 @@
             ON DELETE CASCADE ON UPDATE CASCADE,
             CONSTRAINT FK_CATEGORY_ID FOREIGN KEY (category_id)
             REFERENCES categories (id)
-            ON DELETE CASCADE ON UPDATE CASCADE
+            ON DELETE SET NULL ON UPDATE CASCADE
             );
 
             INSERT INTO transactions (transfer, type, account_id, category_id, ts)

@@ -1,16 +1,17 @@
-package lessons.lesson_7_controllers.dao.finances;
+package lessons.lesson_8_hibernate.dao.finances;
 
-import lessons.lesson_7_controllers.dao.AbstractDao;
-import lessons.lesson_7_controllers.dao.users.UserDao;
-import lessons.lesson_7_controllers.entities.finances.Account;
-import lessons.lesson_7_controllers.entities.finances.AccountType;
-import lessons.lesson_7_controllers.entities.finances.Operation;
-import lessons.lesson_7_controllers.entities.users.UserEntity;
-import lessons.lesson_7_controllers.exceptions.already_exists_exception.AccountAlreadyExistsException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.AccountNotFoundException;
-import lessons.lesson_7_controllers.exceptions.not_found_exception.DataNotFoundException;
-import lessons.lesson_7_controllers.exceptions.not_match_exceptions.AccountNotMatchException;
-import lessons.lesson_7_controllers.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_8_hibernate.dao.AbstractDao;
+import lessons.lesson_8_hibernate.dao.finances.AccountTypeDao;
+import lessons.lesson_8_hibernate.dao.users.UserDao;
+import lessons.lesson_8_hibernate.entities.finances.Account;
+import lessons.lesson_8_hibernate.entities.finances.AccountType;
+import lessons.lesson_8_hibernate.entities.finances.Operation;
+import lessons.lesson_8_hibernate.entities.users.UserEntity;
+import lessons.lesson_8_hibernate.exceptions.already_exists_exception.AccountAlreadyExistsException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.AccountNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.not_found_exception.DataNotFoundException;
+import lessons.lesson_8_hibernate.exceptions.not_match_exceptions.AccountNotMatchException;
+import lessons.lesson_8_hibernate.exceptions.operation_failed.OperationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -165,29 +166,21 @@ public class AccountDao extends AbstractDao<Account, Long> {
 
     @Override
     protected String getFindByIdQuery() {
-        return "SELECT acc.*, acct.title FROM accounts acc" +
-                "LEFT OUTER JOIN account_types acct ON acc.type_id=acct.id " +
-                "WHERE acc.id=?";
+        return "SELECT * FROM accounts WHERE id=?";
     }
 
     private String getFindByUserIdQuery() {
-        return "SELECT acc.*, acct.title FROM accounts acc" +
-                "LEFT OUTER JOIN account_types acct ON acc.type_id=acct.id " +
-                "WHERE acc.user_id=?";
+        return "SELECT * FROM accounts WHERE user_id=?";
     }
 
     @Override
     protected String getFindDomainQuery() {
-        return "SELECT acc.*, acct.title FROM accounts acc" +
-                "LEFT OUTER JOIN account_types acct ON acc.type_id=acct.id " +
-                "WHERE acc.type_id=? AND acc.user_id=? AND acc.name=?";
+        return "SELECT * FROM accounts WHERE type_id=? AND user_id=? AND name=?";
     }
 
     @Override
     protected String getFindAllQuery() {
-        return "SELECT acc.*, acct.title FROM accounts acc" +
-                "LEFT OUTER JOIN account_types acct ON acc.type_id=acct.id " +
-                "ORDER BY id ASC";
+        return "SELECT * FROM accounts ORDER BY id ASC";
     }
 
     @Override
@@ -203,7 +196,7 @@ public class AccountDao extends AbstractDao<Account, Long> {
     @Override
     public void setupInsertQuery(PreparedStatement ps, Account account) throws SQLException {
         ps.setLong(1, account.getType().getId());
-        ps.setLong(2, account.getUserId());
+        ps.setLong(2, account.getUser().getId());
         ps.setString(3, account.getName());
         ps.setBigDecimal(4, account.getSum());
     }
@@ -216,7 +209,7 @@ public class AccountDao extends AbstractDao<Account, Long> {
     @Override
     public void setupFindDomainQuery(PreparedStatement ps, Account account) throws SQLException {
         ps.setLong(1, account.getType().getId());
-        ps.setLong(2, account.getUserId());
+        ps.setLong(2, account.getUser().getId());
         ps.setString(3, account.getName());
     }
 
@@ -229,11 +222,11 @@ public class AccountDao extends AbstractDao<Account, Long> {
         account.setName(result.getString("name"));
         account.setSum(result.getBigDecimal("total"));
         Long typeId = result.getLong("type_id");
-        AccountType accountType = new AccountType();
-        accountType.setId(typeId);
-        accountType.setTitle(result.getString("title"));
+        AccountType accountType = accountTypeDao.findById(typeId);
         account.setType(accountType);
-        account.setUserId(result.getLong("user_id"));
+        Long userId = result.getLong("user_id");
+        UserEntity user = userDao.findById(userId);
+        account.setUser(user);
 
         return account;
     }
@@ -241,7 +234,7 @@ public class AccountDao extends AbstractDao<Account, Long> {
     @Override
     public void updateDomain(ResultSet rs, Account account) throws SQLException {
         rs.updateLong("type_id", account.getType().getId());
-        rs.updateLong("user_id", account.getUserId());
+        rs.updateLong("user_id", account.getUser().getId());
         rs.updateString("name", account.getName());
         rs.updateBigDecimal("total", account.getSum());
         rs.updateRow();
