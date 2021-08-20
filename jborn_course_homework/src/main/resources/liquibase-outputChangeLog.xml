@@ -166,7 +166,7 @@
 
             CREATE TABLE IF NOT EXISTS transactions (
             id              BIGSERIAL,
-            transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer &lt;&gt; 0),
+            transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer &gt; 0),
             type            VARCHAR(25) NOT NULL CHECK (type in ('CREDIT', 'DEBET')),
             account_id      INT NOT NULL,
             category_id     INT NOT NULL,

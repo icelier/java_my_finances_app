@@ -2,12 +2,17 @@ package lessons.lesson_8_hibernate.entities.users;
 
 import lessons.lesson_8_hibernate.entities.DatabaseEntity;
 
+import javax.persistence.*;
 import java.util.Objects;
 
+@Entity
+@Table(name = "roles")
 public class Role implements DatabaseEntity {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "name", length = 50, nullable = false, unique = true)
     private String name;
 
     public Long getId() {
