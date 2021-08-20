@@ -62,7 +62,7 @@ INSERT INTO accounts (type_id, user_id, name, total) VALUES (2, 1, 'father main 
 
 CREATE TABLE IF NOT EXISTS transactions (
 id              BIGSERIAL,
-transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer <> 0),
+transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer > 0),
 --type            operation NOT NULL,
 type            VARCHAR(25)  NOT NULL CHECK (type in ('CREDIT', 'DEBET')),
 account_id      INT NOT NULL,

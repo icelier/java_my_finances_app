@@ -1,13 +1,19 @@
 package lessons.lesson_8_hibernate.entities.finances;
 
+import lessons.lesson_5_spring.exceptions.not_match_exceptions.PasswordNotMatchException;
 import lessons.lesson_8_hibernate.entities.DatabaseEntity;
 
+import javax.persistence.*;
 import java.util.Objects;
 
+@Entity
+@Table(name = "account_types")
 public class AccountType implements DatabaseEntity {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "title", length = 50, nullable = false, unique = true)
     private String title;
 
     public Long getId() {

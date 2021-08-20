@@ -1,35 +1,54 @@
 package lessons.lesson_8_hibernate.entities.users;
 
 import lessons.lesson_8_hibernate.entities.DatabaseEntity;
+import lessons.lesson_8_hibernate.entities.finances.Account;
+import lessons.lesson_8_hibernate.entities.finances.Transaction;
 import lessons.lesson_8_hibernate.entities.users.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import javax.persistence.*;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Entity
+@Table(name = "users")
 public class UserEntity implements DatabaseEntity {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "username", length = 50, nullable = false, unique = true)
     private String userName;
 
+    @Column(name = "password", length = 100, nullable = false)
     private String password;
 
+    @Column(name = "fullname", length = 100, nullable = false)
     private String fullName;
 
+    @Column(name = "age")
     private int age;
 
+    @Column(name = "email", length = 50, nullable = false, unique = true)
     private String email;
 
-    private Collection<Role> roles;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    private List<Role> roles;
 
-    public Collection<Role> getRoles() {
+    @OneToMany(mappedBy = "user")
+    private List<Account> accounts;
+
+    public List<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(Collection<Role> roles) {
+    public void setRoles(List<Role> roles) {
         this.roles = roles;
     }
 
