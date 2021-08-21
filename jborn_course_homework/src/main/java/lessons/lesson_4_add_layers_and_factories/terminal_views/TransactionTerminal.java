@@ -142,7 +142,7 @@ public class TransactionTerminal {
 //            printer.println("Sorry, transaction failed. Please try again later");
 //            return;
 //        }
-        //        commitTransaction(
+        //        commitMoneyTransaction(
 //                withdrawAccount,
 //                transferAccount,
 //                transactionSum);

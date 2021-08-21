@@ -6,6 +6,7 @@ import lessons.lesson_8_hibernate.controllers.users.login.LoginResponse;
 import lessons.lesson_8_hibernate.entities.users.UserEntity;
 import lessons.lesson_8_hibernate.services.users.UserService;
 
+// for http://localhost:8080/my-finances/login POST
 @org.springframework.stereotype.Controller("login")
 public class LoginController implements Controller<LoginRequest, LoginResponse> {
     private final UserService userService;
@@ -23,10 +24,6 @@ public class LoginController implements Controller<LoginRequest, LoginResponse> 
         } else {
             return LoginResponse.SUCCESS;
         }
-//        catch (SQLException e) {
-//            e.printStackTrace();
-//            return LoginResponse.ERROR;
-//        }
     }
 
     @Override

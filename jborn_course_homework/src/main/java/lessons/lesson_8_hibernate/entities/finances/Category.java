@@ -1,19 +1,29 @@
 package lessons.lesson_8_hibernate.entities.finances;
 
-import lessons.lesson_8_hibernate.entities.DatabaseEntity;
-
 import javax.persistence.*;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
 @Table(name = "categories")
-public class Category implements DatabaseEntity {
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "title", length = 50, nullable = false, unique = true)
     private String title;
+
+    @OneToMany(mappedBy = "category")
+    private List<Transaction> transactions;
+
+    public List<Transaction> getTransactions() {
+        return transactions;
+    }
+
+    public void setTransactions(List<Transaction> transactions) {
+        this.transactions = transactions;
+    }
 
     public Long getId() {
         return id;
@@ -51,13 +61,4 @@ public class Category implements DatabaseEntity {
         return Objects.hash(getTitle());
     }
 
-    @Override
-    public Long getEntityId() {
-        return getId();
-    }
-
-    @Override
-    public void setEntityId(Long id) {
-        setId(id);
-    }
 }

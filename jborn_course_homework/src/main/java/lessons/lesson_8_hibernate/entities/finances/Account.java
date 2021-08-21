@@ -1,7 +1,7 @@
 package lessons.lesson_8_hibernate.entities.finances;
 
-import lessons.lesson_8_hibernate.entities.DatabaseEntity;
 import lessons.lesson_8_hibernate.entities.users.UserEntity;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -13,7 +13,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "accounts", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "name"}))
-public class Account implements DatabaseEntity {
+public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,7 +21,8 @@ public class Account implements DatabaseEntity {
     @Column(name = "name", length = 50, nullable = false)
     private String name;
 
-    @Column(name = "total", precision = 15, scale = 2, nullable = false, columnDefinition = "DEFAULT 0")
+    @ColumnDefault("0")
+    @Column(name = "total", precision = 15, scale = 2, nullable = false)
     private BigDecimal total;
 
     @OnDelete(action = OnDeleteAction.NO_ACTION)
@@ -29,13 +30,18 @@ public class Account implements DatabaseEntity {
     @JoinColumn(name = "type_id")
     private AccountType type;
 
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    @OneToMany(mappedBy = "account")
+    @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE)
     private List<Transaction> transactions;
+
+    @Version
+    @Column(name="version")
+    private Long version;
+
+    public Long getVersion() { return version; }
 
     public List<Transaction> getTransactions() {
         return transactions;
@@ -122,13 +128,4 @@ public class Account implements DatabaseEntity {
         return Objects.hash(getName(), getTotal(), getType(), getUser());
     }
 
-    @Override
-    public Long getEntityId() {
-        return getId();
-    }
-
-    @Override
-    public void setEntityId(Long id) {
-        setId(id);
-    }
 }

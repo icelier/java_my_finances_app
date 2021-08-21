@@ -2,6 +2,7 @@ package lessons.lesson_8_hibernate.dao.users;
 
 import lessons.lesson_8_hibernate.dao.AbstractDao;
 import lessons.lesson_8_hibernate.entities.users.Role;
+import lessons.lesson_8_hibernate.exceptions.already_exists_exception.DataAlreadyExistsException;
 import lessons.lesson_8_hibernate.exceptions.already_exists_exception.RoleAlreadyExistsException;
 import lessons.lesson_8_hibernate.exceptions.not_found_exception.DataNotFoundException;
 import lessons.lesson_8_hibernate.exceptions.not_found_exception.RoleNotFoundException;
@@ -10,159 +11,125 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.persistence.*;
 import java.util.List;
 
 @Repository
 public class RoleDao extends AbstractDao<Role,  Long> {
     private static final Logger logger = LoggerFactory.getLogger(RoleDao.class);
 
-    private final DataSource dataSource;
+    private final EntityManager entityManager;
 
-    public RoleDao(DataSource dataSource) {
-        super(dataSource);
-        this.dataSource = dataSource;
+    public RoleDao(EntityManager entityManager) {
+        super(entityManager);
+        this.entityManager = entityManager;
     }
 
     @Override
-    public Role findById(Long id) throws SQLException {
-        return executeFindByIdQuery(id);
-    }
-
-    /**
-     * Returns role found in database by its name or null of no any
-     * @param name of the role
-     * @return role or null
-     * @throws SQLException if database access error occurred, if query is oncorrect
-     */
-
-    public Role findByName(String name) throws SQLException {
-        try(Connection connection = dataSource.getConnection();
-            PreparedStatement ps = connection.prepareStatement(
-                    getFindByNameQuery()
-            )) {
-
-            ps.setString(1, name);
-            ResultSet rs = ps.executeQuery();
-            Role role = null;
-            if (rs.next()) {
-                role = getDomainFromQueryResult(rs);
-            }
-
-            return role;
-        }
-    }
-
-    /**
-     * Returns list of roles
-     * @return list of roles or empty list if no any
-     * @throws SQLException
-     */
-    @Override
-    public List<Role> findAll() throws SQLException {
-        return executeFindAllQuery();
-    }
-
-    /**
-     * Returns inserted role
-     * @return inserted role if success
-     */
-    @Override
-    public Role insert(Role role) throws SQLException, OperationFailedException, RoleAlreadyExistsException {
-        boolean alreadyExists = checkIfAlreadyExists(role);
-        if (alreadyExists) {
-            throw new RoleAlreadyExistsException("Role already exists");
-        }
-        return executeInsertQuery(role);
-    }
-
-    /**
-     * Returns updated role
-     * @return updated role if success
-     */
-    @Override
-    public Role update(Role role) throws SQLException, RoleNotFoundException, OperationFailedException {
+    public Role findById(Long id) throws OperationFailedException {
+        Role role;
         try {
-            executeUpdateQuery(role.getId(), role);
-        } catch (DataNotFoundException e) {
-            throw new RoleNotFoundException("Role " + role.getName() + " not found in the database");
+            role = entityManager.find(Role.class, id);
+        } catch (Exception e) {
+            throw new OperationFailedException(e.getMessage());
+        }
+
+        return role;
+    }
+
+    public Role findByName(String name) throws RoleNotFoundException, OperationFailedException {
+        Role role;
+        try {
+            Query query = entityManager.createQuery(getFindByNameQuery(), Role.class);
+            query.setParameter("name", name);
+            role = (Role) query.getSingleResult();
+        } catch (NoResultException e) {
+            throw new RoleNotFoundException(e.getMessage());
+        } catch (Exception e) {
+            throw new OperationFailedException(e.getMessage());
         }
 
         return role;
     }
 
     @Override
-    public void delete(Role role) throws SQLException, OperationFailedException {
-        executeDeleteQuery(role);
+    public List<Role> findAll() throws OperationFailedException {
+        List<Role> roles;
+        try {
+            TypedQuery<Role> query = entityManager.createQuery(getFindAllQuery(), Role.class);
+            roles = query.getResultList();
+        } catch (Exception e) {
+            throw new OperationFailedException(e.getMessage());
+        }
+
+        return roles;
     }
 
+    @Override
+    public Role insert(Role role) throws OperationFailedException, RoleAlreadyExistsException {
+        try {
+            super.insert(role);
+        } catch (DataAlreadyExistsException e) {
+            throw new RoleAlreadyExistsException(e.getMessage());
+        }
+
+        return role;
+    }
 
     @Override
-    protected String getInsertQuery() {
-        return "INSERT INTO roles (name) VALUES (?)";
+    public Role update(Role role) throws RoleNotFoundException, OperationFailedException {
+        entityManager.getTransaction().begin();
+        Role roleFromDb = findById(role.getId());
+        if (roleFromDb == null) {
+            throw new RoleNotFoundException("Role " + role.getName() +  " not found in the database");
+        }
+        roleFromDb = executeUpdateQuery(roleFromDb, role);
+        entityManager.getTransaction().commit();
+
+        return roleFromDb;
+    }
+
+    @Override
+    public void delete(Role role) throws DataNotFoundException, OperationFailedException {
+        Role roleFromDb = findById(role.getId());
+        if (roleFromDb == null) {
+            throw new RoleNotFoundException("Role " + role.getName() +  " not found in the database");
+        }
+        super.delete(role);
+    }
+
+    @Override
+    public int deleteAll() throws OperationFailedException {
+        List<Role> roles = findAll();
+        int deletedRows = 0;
+        if (!roles.isEmpty()) {
+            deletedRows = super.deleteAll();
+        }
+
+        return deletedRows;
     }
 
     @Override
     protected String getFindByIdQuery() {
-        return "SELECT * FROM roles WHERE id=?";
+        return "SELECT r FROM Role r WHERE r.id=:id";
     }
 
     private String getFindByNameQuery() {
-        return "SELECT * FROM roles WHERE name=?";
+        return "SELECT r FROM Role r WHERE r.name=:name";
     }
 
     @Override
     protected String getFindAllQuery() {
-        return "SELECT * FROM roles ORDER BY id ASC";
+        return "FROM Role r ORDER BY r.id ASC";
     }
 
     @Override
-    protected String getDeleteQuery() {
-        return "DELETE FROM roles WHERE id=?";
+    protected String getDeleteAllQuery() {
+        return "DELETE FROM Role r";
     }
 
     @Override
-    protected String getFindDomainQuery() {
-        return "SELECT * FROM roles WHERE name=?";
-    }
-
-    @Override
-    public void setupFindByIdQuery(PreparedStatement ps, Long id) throws SQLException {
-        ps.setLong(1, id);
-    }
-
-    @Override
-    public void setupInsertQuery(PreparedStatement ps, Role role) throws SQLException {
-        ps.setString(1, role.getName());
-    }
-
-    @Override
-    public void setupDeleteQuery(PreparedStatement ps, Role role) throws SQLException {
-        ps.setLong(1, role.getId());
-    }
-
-    @Override
-    public void setupFindDomainQuery(PreparedStatement ps, Role role) throws SQLException {
-        ps.setString(1, role.getName());
-    }
-
-    @Override
-    public Role getDomainFromQueryResult(ResultSet rs) throws SQLException {
-        Role role = new Role();
-        logger.debug("role found from db: " + rs.getString("name"));
-        role.setId(rs.getLong("id"));
-        role.setName(rs.getString("name"));
-
-        return role;
-    }
-
-    @Override
-    public void updateDomain(ResultSet rs, Role role) throws SQLException {
-        rs.updateString("name", role.getName());
-        rs.updateRow();
+    public void updateDomain(Role persistentRole, Role role) {
+        persistentRole.setName(role.getName());
     }
 }
