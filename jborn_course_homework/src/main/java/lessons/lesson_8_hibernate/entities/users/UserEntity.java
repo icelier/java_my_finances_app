@@ -1,21 +1,14 @@
 package lessons.lesson_8_hibernate.entities.users;
 
-import lessons.lesson_8_hibernate.entities.DatabaseEntity;
 import lessons.lesson_8_hibernate.entities.finances.Account;
-import lessons.lesson_8_hibernate.entities.finances.Transaction;
-import lessons.lesson_8_hibernate.entities.users.Role;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.persistence.*;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
-public class UserEntity implements DatabaseEntity {
+public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,7 +25,7 @@ public class UserEntity implements DatabaseEntity {
     @Column(name = "age")
     private int age;
 
-    @Column(name = "email", length = 50, nullable = false, unique = true)
+    @Column(name = "email", length = 50, nullable = false, unique = true, updatable = false)
     private String email;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -41,8 +34,22 @@ public class UserEntity implements DatabaseEntity {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<Role> roles;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Account> accounts;
+
+    @Version
+    @Column(name="version")
+    private Long version;
+
+    public Long getVersion() { return version; }
+
+    public List<Account> getAccounts() {
+        return accounts;
+    }
+
+    public void setAccounts(List<Account> accounts) {
+        this.accounts = accounts;
+    }
 
     public List<Role> getRoles() {
         return roles;
@@ -100,35 +107,29 @@ public class UserEntity implements DatabaseEntity {
         this.age = age;
     }
 
-    public Collection<GrantedAuthority> getAuthorities() {
-        return getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toList());
-    }
+//    public Collection<GrantedAuthority> getAuthorities() {
+//        return getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName()))
+//                .collect(Collectors.toList());
+//    }
 
     public UserEntity() {}
-
-    public UserEntity(Long id, String userName, String fullName, String password, String email, int age) {
-        this.id = id;
-        this.userName = userName;
-        this.fullName = fullName;
-        this.password = password;
-        this.email = email;
-        this.age = age;
-    }
-
-    public UserEntity(String userName, String fullName, String password, String email, int age) {
-        this.userName = userName;
-        this.fullName = fullName;
-        this.password = password;
-        this.email = email;
-        this.age = age;
-    }
 
     public UserEntity(String userName, String password, String email) {
         this.userName = userName;
         this.fullName = userName;
         this.password = password;
         this.email = email;
+    }
+
+    public UserEntity(String userName, String fullName, String password, String email, int age) {
+        this(userName, password, email);
+        this.fullName = fullName;
+        this.age = age;
+    }
+
+    public UserEntity(Long id, String userName, String fullName, String password, String email, int age) {
+        this(userName, fullName, password, email, age);
+        this.id = id;
     }
 
     @Override
@@ -156,13 +157,4 @@ public class UserEntity implements DatabaseEntity {
                 '}';
     }
 
-    @Override
-    public Long getEntityId() {
-        return getId();
-    }
-
-    @Override
-    public void setEntityId(Long id) {
-        setId(id);
-    }
 }

@@ -19,7 +19,7 @@
 
     <servlet>
         <servlet-name>MainServlet</servlet-name>
-        <servlet-class>lessons.lesson_7_controllers.servlets.MainServlet</servlet-class>
+        <servlet-class>lessons.lesson_8_hibernate.servlets.MainServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>

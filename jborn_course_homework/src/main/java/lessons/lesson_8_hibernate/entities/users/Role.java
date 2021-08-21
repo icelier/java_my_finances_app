@@ -1,13 +1,11 @@
 package lessons.lesson_8_hibernate.entities.users;
 
-import lessons.lesson_8_hibernate.entities.DatabaseEntity;
-
 import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
 @Table(name = "roles")
-public class Role implements DatabaseEntity {
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -57,15 +55,5 @@ public class Role implements DatabaseEntity {
     @Override
     public int hashCode() {
         return Objects.hash(getName());
-    }
-
-    @Override
-    public Long getEntityId() {
-        return getId();
-    }
-
-    @Override
-    public void setEntityId(Long id) {
-        setId(id);
     }
 }

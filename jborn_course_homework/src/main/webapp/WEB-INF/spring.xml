@@ -11,6 +11,6 @@
     <context:spring-configured />
 
     <!-- Scan class file in class path for annotated component -> @Component, @Repository, @Service, and @Controller  -->
-    <context:component-scan base-package="lessons.lesson_7_controllers.servlets" />
+    <context:component-scan base-package="lessons.lesson_8_hibernate.servlets" />
 
 </beans>

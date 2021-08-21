@@ -36,6 +36,9 @@
             <column name="email" type="VARCHAR(50)">
                 <constraints unique="true" nullable="false"/>
             </column>
+            <column name="version" type="BIGINT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
     <changeSet author="myfinances" id="1626069474440-8">
@@ -63,6 +66,9 @@
                 <constraints nullable="false"/>
             </column>
             <column defaultValueNumeric="0" name="total" type="numeric(15, 2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -166,11 +172,12 @@
 
             CREATE TABLE IF NOT EXISTS transactions (
             id              BIGSERIAL,
-            transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer &gt; 0),
+            sum             NUMERIC(15, 2) NOT NULL CHECK (sum &lt;&gt; 0),
             type            VARCHAR(25) NOT NULL CHECK (type in ('CREDIT', 'DEBET')),
             account_id      INT NOT NULL,
             category_id     INT NOT NULL,
             ts              TIMESTAMP NOT NULL,
+            version         INT NOT NULL DEFAULT 0,
             PRIMARY KEY (id),
             CONSTRAINT FK_ACCOUNT_ID FOREIGN KEY (account_id)
             REFERENCES accounts (id)
@@ -180,7 +187,7 @@
             ON DELETE SET NULL ON UPDATE CASCADE
             );
 
-            INSERT INTO transactions (transfer, type, account_id, category_id, ts)
+            INSERT INTO transactions (sum, type, account_id, category_id, ts)
             VALUES (-2000, 'CREDIT', 2, 3, '2021-06-22 19:10:25'),
             (-20340, 'CREDIT', 3, 3, '2021-06-22 19:10:25'),
             (53530, 'DEBET', 1, 1, '2021-06-22 19:10:25'),

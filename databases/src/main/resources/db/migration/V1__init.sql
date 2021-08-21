@@ -29,6 +29,7 @@ password        VARCHAR(100) NOT NULL,
 fullname        VARCHAR(100) NOT NULL,
 age             INT,
 email           VARCHAR(50) NOT NULL,
+version         INT NOT NULL DEFAULT 0,
 UNIQUE (username), UNIQUE(email),
 PRIMARY KEY (id)
 );
@@ -45,6 +46,7 @@ type_id         INT NOT NULL,
 user_id         INT NOT NULL,
 name            VARCHAR(50) NOT NULL,
 total           NUMERIC(15, 2) NOT NULL DEFAULT 0,
+version         INT NOT NULL DEFAULT 0,
 UNIQUE(user_id, name),
 PRIMARY KEY (id),
 CONSTRAINT FK_USER_ID_FK1 FOREIGN KEY (user_id)
@@ -62,12 +64,13 @@ INSERT INTO accounts (type_id, user_id, name, total) VALUES (2, 1, 'father main 
 
 CREATE TABLE IF NOT EXISTS transactions (
 id              BIGSERIAL,
-transfer        NUMERIC(15, 2) NOT NULL CHECK (transfer > 0),
+sum             NUMERIC(15, 2) NOT NULL CHECK (sum <> 0),
 --type            operation NOT NULL,
 type            VARCHAR(25)  NOT NULL CHECK (type in ('CREDIT', 'DEBET')),
 account_id      INT NOT NULL,
 category_id     INT NOT NULL,
 ts              TIMESTAMP NOT NULL,
+version         INT NOT NULL DEFAULT 0,
 PRIMARY KEY (id),
 CONSTRAINT FK_ACCOUNT_ID FOREIGN KEY (account_id)
 REFERENCES accounts (id)
@@ -77,7 +80,7 @@ REFERENCES categories (id)
 ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-INSERT INTO transactions (transfer, type, account_id, category_id, ts)
+INSERT INTO transactions (sum, type, account_id, category_id, ts)
 VALUES (2000, 'CREDIT', 2, 3, '2021-06-22 19:10:25'),
 (20340, 'CREDIT', 3, 3, '2021-06-22 19:10:25'),
 (53530, 'DEBET', 1, 1, '2021-06-22 19:10:25'),

@@ -1,11 +1,9 @@
 package lessons.lesson_8_hibernate.entities.finances;
 
-import lessons.lesson_8_hibernate.entities.DatabaseEntity;
 import org.hibernate.annotations.Check;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.springframework.cglib.core.GeneratorStrategy;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -14,26 +12,24 @@ import java.time.Instant;
 import java.util.Objects;
 
 @Entity
-@Check(constraints = "sum > 0")
+@Check(constraints = "sum <> 0")
 @Table(name = "transactions")
-public class Transaction implements DatabaseEntity {
+public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "sum", precision = 15, scale = 2, nullable = false)
+    @Column(name = "sum", precision = 15, scale = 2, nullable = false, updatable = false)
     private BigDecimal sum;
 
-    @Column(name = "type", nullable = false, length = 25)
+    @Column(name = "type", nullable = false, length = 25, updatable = false)
     @Enumerated(EnumType.STRING)
     private Operation operation;
 
     @Column(name = "ts", nullable = false, updatable = false)
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private Instant timestamp;
 
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
     private Account account;
@@ -42,6 +38,12 @@ public class Transaction implements DatabaseEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @Version
+    @Column(name="version")
+    private Long version;
+
+    public Long getVersion() { return version; }
 
     public Long getId() {
         return id;
@@ -125,21 +127,11 @@ public class Transaction implements DatabaseEntity {
 
     @Override
     public String toString() {
-        return "Transaction{" +
+        return "Transaction{ id = " + id + " operation: " +
                 operation +
                 ": sum=" + sum +
                 ", timestamp=" + timestamp +
                 ", category =" + category +
                 '}';
-    }
-
-    @Override
-    public Long getEntityId() {
-        return getId();
-    }
-
-    @Override
-    public void setEntityId(Long id) {
-        setId(id);
     }
 }

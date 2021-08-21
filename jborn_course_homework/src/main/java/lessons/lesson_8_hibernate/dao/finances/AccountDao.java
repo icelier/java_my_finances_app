@@ -1,13 +1,11 @@
 package lessons.lesson_8_hibernate.dao.finances;
 
 import lessons.lesson_8_hibernate.dao.AbstractDao;
-import lessons.lesson_8_hibernate.dao.finances.AccountTypeDao;
 import lessons.lesson_8_hibernate.dao.users.UserDao;
 import lessons.lesson_8_hibernate.entities.finances.Account;
-import lessons.lesson_8_hibernate.entities.finances.AccountType;
 import lessons.lesson_8_hibernate.entities.finances.Operation;
-import lessons.lesson_8_hibernate.entities.users.UserEntity;
 import lessons.lesson_8_hibernate.exceptions.already_exists_exception.AccountAlreadyExistsException;
+import lessons.lesson_8_hibernate.exceptions.already_exists_exception.DataAlreadyExistsException;
 import lessons.lesson_8_hibernate.exceptions.not_found_exception.AccountNotFoundException;
 import lessons.lesson_8_hibernate.exceptions.not_found_exception.DataNotFoundException;
 import lessons.lesson_8_hibernate.exceptions.not_match_exceptions.AccountNotMatchException;
@@ -16,227 +14,159 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
+import javax.persistence.*;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class AccountDao extends AbstractDao<Account, Long> {
     private static final Logger logger = LoggerFactory.getLogger(AccountDao.class);
 
-    private final DataSource dataSource;
+    private final EntityManager entityManager;
+
     private final UserDao userDao;
     private final AccountTypeDao accountTypeDao;
 
-    public AccountDao(DataSource dataSource, UserDao userDao, AccountTypeDao accountTypeDao) {
-        super(dataSource);
-        this.dataSource = dataSource;
+    public AccountDao(EntityManager entityManager, UserDao userDao, AccountTypeDao accountTypeDao) {
+        super(entityManager);
+        this.entityManager = entityManager;
         this.userDao = userDao;
         this.accountTypeDao = accountTypeDao;
     }
 
     @Override
-    public Account findById(Long id) throws SQLException {
-        return executeFindByIdQuery(id);
-    }
-
-    public Account findById(Long id, Connection connection) throws SQLException {
-        return executeFindByIdQuery(connection, id);
-    }
-
-    @Override
-    public List<Account> findAll() throws SQLException {
-        return executeFindAllQuery();
-    }
-
-    /**
-     * Returns inserted account entity with new id generated. First checks for entity presence in the database
-     * based on equals method criteria
-     * @param account entity to get parameters for insert query
-     * @return inserted account with generated id
-     * @throws SQLException if database access error occurred, if query parameter is incorrect
-     * @throws OperationFailedException if id generation for inserted account failed
-     * @throws AccountAlreadyExistsException if account found in the database by equals method criteria
-     */
-    @Override
-    public Account insert(Account account) throws SQLException, OperationFailedException, AccountAlreadyExistsException {
-        boolean alreadyExists = checkIfAlreadyExists(account);
-        if (alreadyExists) {
-            throw new AccountAlreadyExistsException("Account already exists");
-        }
-
-        return executeInsertQuery(account);
-    }
-
-    /**
-     * Returns updated account
-     * @return updated account if success
-     */
-    @Override
-    public Account update(Account account) throws SQLException, AccountNotFoundException, OperationFailedException {
+    public Account findById(Long id) throws OperationFailedException {
+        Account account;
         try {
-            executeUpdateQuery(account.getId(), account);
-        } catch (DataNotFoundException e) {
-            throw  new AccountNotFoundException("Account not found in the database");
-        }
-
-        return account;
-    }
-
-    public Account update(Account account, Connection connection) throws SQLException, AccountNotFoundException, OperationFailedException {
-        try {
-            executeUpdateQuery(connection, account.getId(), account);
-        } catch (DataNotFoundException e) {
-            throw  new AccountNotFoundException("Account " + account.getName() + " not found in the database");
+            account = entityManager.find(Account.class, id);
+        } catch (Exception e) {
+            throw new OperationFailedException(e.getMessage());
         }
 
         return account;
     }
 
     @Override
-    public void delete(Account account) throws SQLException, OperationFailedException {
-        executeDeleteQuery(account);
-    }
-
-    public List<Account> findAllByUserId(Long userId) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement ps = connection.prepareStatement(
-                     getFindByUserIdQuery()
-             )) {
-            ps.setLong(1, userId);
-            ResultSet rs = ps.executeQuery();
-            List<Account> accounts = new ArrayList<>();
-            while (rs.next()) {
-                Account account = getDomainFromQueryResult(rs);
-                accounts.add(account);
-            }
-
-            return accounts;
+    public List<Account> findAll() throws OperationFailedException {
+        List<Account> accounts;
+        try {
+            TypedQuery<Account> query = entityManager.createQuery(getFindAllQuery(), Account.class);
+            accounts = query.getResultList();
+        } catch (Exception e) {
+            throw new OperationFailedException(e.getMessage());
         }
-    }
 
-    /**
-     * Updates total for the given account id with the given sum based on operation type. If operation type is credit, sum is subtracted and
-     * if debet then sum is added
-     * @param accountId account id where sum to be updated
-     * @param sum to be subtracted or added from/to the given account based on operation type
-     * @param connection to execute query
-     * @param operation type for operation, either credit or debet
-     * @throws AccountNotFoundException if account not found in database by id
-     * @throws AccountNotMatchException if there is not enough money at the account found in database
-     * @throws SQLException if database access error occurred, if underlying query is incorrect
-     */
-    public void updateSum(Long accountId, BigDecimal sum, Connection connection, Operation operation) throws AccountNotFoundException, AccountNotMatchException, SQLException {
-        try(PreparedStatement ps = connection.prepareStatement(
-                getFindByIdQuery(),
-                ResultSet.TYPE_SCROLL_INSENSITIVE,
-                ResultSet.CONCUR_UPDATABLE
-        )) {
-
-            setupFindByIdQuery(ps, accountId);
-
-            ResultSet rs = ps.executeQuery();
-            if (!rs.next()) {
-                throw new AccountNotFoundException("Account for total update not found");
-            }
-
-            BigDecimal total = rs.getBigDecimal("total");
-            if (operation == Operation.CREDIT && (total.compareTo(sum) < 0)) {
-                throw new AccountNotMatchException("Transaction sum is beyond current account total");
-            }
-            if (operation == Operation.CREDIT) {
-                rs.updateBigDecimal("total", total.subtract(sum));
-            } else {
-                rs.updateBigDecimal("total", total.add(sum));
-            }
-
-            rs.updateRow();
-        }
+        return accounts;
     }
 
     @Override
-    protected String getInsertQuery() {
-        return "INSERT INTO accounts (type_id, user_id, name, total) VALUES (?, ?, ?, ?)";
+    public Account insert(Account account) throws AccountAlreadyExistsException, OperationFailedException {
+        logger.debug("AccountDao entityManager = " + entityManager);
+        try {
+            super.insert(account);
+        } catch (DataAlreadyExistsException e) {
+            throw new AccountAlreadyExistsException(e.getMessage());
+        }
+
+        return account;
+    }
+
+    @Override
+    public Account update(Account account) throws AccountNotFoundException, OperationFailedException {
+        boolean hasSuccess = false;
+        EntityTransaction transaction = null;
+        Account accountFromDb = null;
+
+        while(!hasSuccess) {
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+
+            accountFromDb = findById(account.getId());
+            if (accountFromDb == null) {
+                throw new AccountNotFoundException("Account " + account.getName() + " not found in the database");
+            }
+            entityManager.lock(accountFromDb, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+            accountFromDb = executeUpdateQuery(accountFromDb, account);
+            try {
+                transaction.commit();
+                hasSuccess = true;
+            } catch (OptimisticLockException e) {
+                e.printStackTrace();
+                rollbackTransaction(transaction);
+            }
+        }
+
+        return accountFromDb;
+    }
+
+    @Override
+    public void delete(Account account) throws OperationFailedException, DataNotFoundException {
+        Account accountFromDb = findById(account.getId()) ;
+        if (accountFromDb == null) {
+            throw new AccountNotFoundException("Account " + account.getName() + " not found in the database");
+        }
+        super.delete(accountFromDb);
+    }
+
+    @Override
+    public int deleteAll() throws OperationFailedException {
+        List<Account> accounts = findAll();
+        int deletedRows = 0;
+        if (!accounts.isEmpty()) {
+            deletedRows = super.deleteAll();
+        }
+
+        return deletedRows;
+    }
+
+//    public List<Account> findAllByUserId(Long userId) throws OperationFailedException {
+//        try {
+//            Query query = entityManager.createQuery(getFindByUserIdQuery());
+//            query.setParameter("userId", userId);
+//
+//            List<Account> userAccounts = query.getResultList();
+//
+//            return userAccounts;
+//        } catch (Exception e) {
+//            throw new OperationFailedException(e.getMessage());
+//        }
+//    }
+
+    public void updateSum(Account account, BigDecimal sum, Operation operation) throws AccountNotFoundException, AccountNotMatchException {
+        BigDecimal total = account.getTotal();
+        if (operation == Operation.CREDIT && (total.compareTo(sum) < 0)) {
+            throw new AccountNotMatchException("Transaction sum is beyond current account total");
+        }
+        if (operation == Operation.CREDIT) {
+            account.setTotal(total.subtract(sum));
+        } else if (operation == Operation.DEBET) {
+            account.setTotal(total.add(sum));
+        }
     }
 
     @Override
     protected String getFindByIdQuery() {
-        return "SELECT * FROM accounts WHERE id=?";
-    }
-
-    private String getFindByUserIdQuery() {
-        return "SELECT * FROM accounts WHERE user_id=?";
-    }
-
-    @Override
-    protected String getFindDomainQuery() {
-        return "SELECT * FROM accounts WHERE type_id=? AND user_id=? AND name=?";
+        return "SELECT a FROM Account a WHERE a.id=:id";
     }
 
     @Override
     protected String getFindAllQuery() {
-        return "SELECT * FROM accounts ORDER BY id ASC";
+        return "SELECT a FROM Account a ORDER BY a.id ASC";
     }
 
     @Override
-    protected String getDeleteQuery() {
-        return "DELETE FROM accounts WHERE id=?";
+    protected String getDeleteAllQuery() {
+        return "DELETE FROM Account a";
     }
+
+//    private String getFindByUserIdQuery() {
+//        return "SELECT a FROM Account a WHERE a.user_id=?";
+//    }
 
     @Override
-    public void setupFindByIdQuery(PreparedStatement ps, Long id) throws SQLException {
-        ps.setLong(1, id);
+    protected void updateDomain(Account persistentDomain, Account account) {
+        persistentDomain.setTotal(account.getTotal());
+        persistentDomain.setName(account.getName());
     }
 
-    @Override
-    public void setupInsertQuery(PreparedStatement ps, Account account) throws SQLException {
-        ps.setLong(1, account.getType().getId());
-        ps.setLong(2, account.getUser().getId());
-        ps.setString(3, account.getName());
-        ps.setBigDecimal(4, account.getSum());
-    }
-
-    @Override
-    public void setupDeleteQuery(PreparedStatement ps, Account account) throws SQLException {
-        ps.setLong(1, account.getId());
-    }
-
-    @Override
-    public void setupFindDomainQuery(PreparedStatement ps, Account account) throws SQLException {
-        ps.setLong(1, account.getType().getId());
-        ps.setLong(2, account.getUser().getId());
-        ps.setString(3, account.getName());
-    }
-
-    @Override
-    public Account getDomainFromQueryResult(ResultSet result) throws SQLException {
-        Account account = new Account();
-        logger.debug("Account found from db: " + result.getLong("id") +
-                " " + result.getString("name"));
-        account.setId(result.getLong("id"));
-        account.setName(result.getString("name"));
-        account.setSum(result.getBigDecimal("total"));
-        Long typeId = result.getLong("type_id");
-        AccountType accountType = accountTypeDao.findById(typeId);
-        account.setType(accountType);
-        Long userId = result.getLong("user_id");
-        UserEntity user = userDao.findById(userId);
-        account.setUser(user);
-
-        return account;
-    }
-
-    @Override
-    public void updateDomain(ResultSet rs, Account account) throws SQLException {
-        rs.updateLong("type_id", account.getType().getId());
-        rs.updateLong("user_id", account.getUser().getId());
-        rs.updateString("name", account.getName());
-        rs.updateBigDecimal("total", account.getSum());
-        rs.updateRow();
-    }
 }

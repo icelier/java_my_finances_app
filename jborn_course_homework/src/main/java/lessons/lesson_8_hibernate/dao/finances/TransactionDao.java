@@ -1,12 +1,8 @@
 package lessons.lesson_8_hibernate.dao.finances;
 
 import lessons.lesson_8_hibernate.dao.AbstractDao;
-import lessons.lesson_8_hibernate.dao.finances.AccountDao;
-import lessons.lesson_8_hibernate.dao.finances.CategoryDao;
-import lessons.lesson_8_hibernate.entities.finances.Account;
-import lessons.lesson_8_hibernate.entities.finances.Category;
-import lessons.lesson_8_hibernate.entities.finances.Operation;
 import lessons.lesson_8_hibernate.entities.finances.Transaction;
+import lessons.lesson_8_hibernate.exceptions.already_exists_exception.DataAlreadyExistsException;
 import lessons.lesson_8_hibernate.exceptions.already_exists_exception.TransactionAlreadyExistsException;
 import lessons.lesson_8_hibernate.exceptions.not_found_exception.DataNotFoundException;
 import lessons.lesson_8_hibernate.exceptions.not_found_exception.TransactionNotFoundException;
@@ -15,257 +11,202 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
+import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.sql.*;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Repository
 public class TransactionDao extends AbstractDao<Transaction, Long> {
     private static final Logger logger = LoggerFactory.getLogger(TransactionDao.class);
 
-
-    private final DataSource dataSource;
+    private final EntityManager entityManager;
     private final AccountDao accountDao;
     private final CategoryDao categoryDao;
 
     public TransactionDao(
-            DataSource dataSource,
+            EntityManager entityManager,
             AccountDao accountDao,
             CategoryDao categoryDao
     ) {
-        super(dataSource);
-        this.dataSource = dataSource;
+        super(entityManager);
+        this.entityManager = entityManager;
         this.accountDao = accountDao;
         this.categoryDao = categoryDao;
     }
 
     @Override
-    public Transaction findById(Long id) throws SQLException {
-        return executeFindByIdQuery(id);
-    }
-
-    @Override
-    public List<Transaction> findAll() throws SQLException {
-        return executeFindAllQuery();
-    }
-
-    /**
-     * Inserts transaction entity into database
-     * @param transaction to be inserted
-     * @return created transaction entity
-     * @throws SQLException if database access error occurred, if underlying query is incorrect
-     * @throws OperationFailedException if transaction id was not generated
-     * @throws TransactionAlreadyExistsException if transaction found in database
-     */
-    @Override
-    public Transaction insert(Transaction transaction) throws SQLException, OperationFailedException, TransactionAlreadyExistsException {
-        boolean alreadyExists = checkIfAlreadyExists(transaction);
-        if (alreadyExists) {
-            throw new TransactionAlreadyExistsException("Transaction already exists");
-        }
-
-        return executeInsertQuery(transaction);
-    }
-
-    /**
-     * Inserts transaction entity into database
-     * @param transaction to be inserted
-     * @param connection to be used for query execution
-     * @return created transaction entity
-     * @throws SQLException if database access error occurred, if underlying query is incorrect
-     * @throws OperationFailedException if transaction id was not generated
-     * @throws TransactionAlreadyExistsException if transaction found in database
-     */
-    public Transaction insert(Transaction transaction, Connection connection) throws SQLException, OperationFailedException, TransactionAlreadyExistsException {
-        boolean alreadyExists = checkIfAlreadyExists(transaction);
-        if (alreadyExists) {
-            throw new TransactionAlreadyExistsException("Transaction already exists");
-        }
-        return executeInsertQuery(connection, transaction);
-    }
-
-    /**
-     * Returns updated transaction
-     * @return updated transaction if success
-     * @throws SQLException if database access error occurred, if underlying query is incorrect
-     * @throws TransactionNotFoundException if transaction not found in the database by id
-     * @throws OperationFailedException if transaction id was not generated
-     */
-    @Override
-    public Transaction update(Transaction transaction) throws SQLException, TransactionNotFoundException, OperationFailedException {
+    public Transaction findById(Long id) throws OperationFailedException {
+        Transaction transaction;
         try {
-            executeUpdateQuery(transaction.getId(), transaction);
-        } catch (DataNotFoundException e) {
-            throw  new TransactionNotFoundException("Transaction " + transaction.getSum() + " not found in the database");
+            transaction = entityManager.find(Transaction.class, id);
+        } catch (Exception e) {
+            throw new OperationFailedException(e.getMessage());
+        }
+
+        return transaction;
+    }
+
+    public List<Transaction> findAllByUserId(Long userId) throws OperationFailedException {
+        List<Transaction> transactions;
+        try {
+            TypedQuery<Transaction> query = entityManager.createQuery(getFindByUserIdQuery(), Transaction.class);
+            query.setParameter("userId", userId);
+            transactions = query.getResultList();
+        } catch (Exception e) {
+            throw new OperationFailedException(e.getMessage());
+        }
+
+        return transactions;
+    }
+
+    public List<Transaction> findAllByUserIdToday(Long userId) throws OperationFailedException {
+        List<Transaction> transactions;
+        try {
+            TypedQuery<Transaction> query = entityManager.createQuery(getFindByUserIdTodayQuery(), Transaction.class);
+            query.setParameter("userId", userId);
+            Instant now = Instant.now();
+            Instant yesterday = now.minus(1, TimeUnit.DAYS.toChronoUnit());
+            String endTime = Timestamp.from(now).toString();
+            String beginTime = Timestamp.from(yesterday).toString();
+            query.setParameter("beginTime", beginTime);
+            query.setParameter("endTime", endTime);
+            transactions = query.getResultList();
+        } catch (Exception e) {
+            throw new OperationFailedException(e.getMessage());
+        }
+
+        return transactions;
+    }
+
+    @Override
+    public List<Transaction> findAll() throws OperationFailedException {
+        List<Transaction> transactions;
+        try {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+            CriteriaQuery<Transaction> criteriaQuery = criteriaBuilder.createQuery(Transaction.class);
+            Root<Transaction> root = criteriaQuery.from(Transaction.class);
+            criteriaQuery.orderBy(criteriaBuilder.desc(root.get("timestamp")));
+            transactions = entityManager.createQuery(criteriaQuery).getResultList();
+        } catch (Exception e) {
+            throw new OperationFailedException(e.getMessage());
+        }
+
+        return transactions;
+    }
+
+    @Override
+    public Transaction insert(Transaction transaction) throws OperationFailedException, TransactionAlreadyExistsException {
+        try {
+            super.insert(transaction);
+        } catch (DataAlreadyExistsException e) {
+            throw new TransactionAlreadyExistsException(e.getMessage());
+        }
+
+        return transaction;
+    }
+
+    public Transaction insert(Transaction transaction, boolean dbTransactionAlreadyBegan) throws OperationFailedException, TransactionAlreadyExistsException {
+        if (dbTransactionAlreadyBegan) {
+            try {
+                entityManager.persist(transaction);
+            } catch (EntityExistsException e) {
+                throw new TransactionAlreadyExistsException(e.getMessage());
+            } catch (Exception e) {
+                throw new OperationFailedException(e.getMessage());
+            }
         }
 
         return transaction;
     }
 
     @Override
-    public void delete(Transaction transaction) throws SQLException, OperationFailedException {
-        executeDeleteQuery(transaction);
-    }
+    public Transaction update(Transaction transaction) throws TransactionNotFoundException, OperationFailedException {
+        boolean hasSuccess = false;
+        EntityTransaction entityTransaction = null;
+        Transaction transactionFromDb = null;
 
-    public List<Transaction> findAllByUserId(Long userId) throws SQLException {
-        logger.debug("user id = " + userId);
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement ps = connection.prepareStatement(
-                     getFindByUserIdQuery()
-             )) {
-            ps.setLong(1, userId);
-            ResultSet rs = ps.executeQuery();
-            List<Transaction> transactions = new ArrayList<>();
-            while (rs.next()) {
-                Transaction transaction = getDomainFromQueryResult(rs);
-                transactions.add(transaction);
+        while(!hasSuccess) {
+            if (entityTransaction != null) {
+                logger.debug("Money transfer transactions is active = " + entityTransaction.isActive());
             }
+            entityTransaction = entityManager.getTransaction();
+            entityTransaction.begin();
 
-            return transactions;
-        }
-    }
-
-    public List<Transaction> findAllByUserIdToday(Long userId) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement ps = connection.prepareStatement(
-                     getFindByUserIdTodayQuery()
-             )) {
-            ps.setLong(1, userId);
-            ps.setTimestamp(2,
-                    Timestamp.from(Timestamp.valueOf(LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)).toInstant()));
-            ps.setTimestamp(3,
-                    Timestamp.from(Timestamp.valueOf(LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIDNIGHT)).toInstant()));
-            ResultSet rs = ps.executeQuery();
-            List<Transaction> transactions = new ArrayList<>();
-            while (rs.next()) {
-                Transaction transaction = getDomainFromQueryResult(rs);
-                transactions.add(transaction);
+            transactionFromDb = findById(transaction.getId());
+            if (transactionFromDb == null) {
+                throw new TransactionNotFoundException("Transaction " + transaction.getSum() + " not found in the database");
             }
-
-            return transactions;
+            entityManager.lock(transactionFromDb, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+            transactionFromDb = executeUpdateQuery(transactionFromDb, transaction);
+            try {
+                entityTransaction.commit();
+                hasSuccess = true;
+            } catch (OptimisticLockException e) {
+                e.printStackTrace();
+                if (entityTransaction.isActive()) {
+                    try {
+                        entityTransaction.rollback();
+                    } catch (Exception ex) {
+                        throw new OperationFailedException(ex.getMessage());
+                    }
+                }
+            }
         }
+
+        return transactionFromDb;
     }
 
     @Override
-    protected String getInsertQuery() {
-        return "INSERT INTO transactions (transfer, type, account_id, category_id, ts) VALUES (?, ?, ?, ?, ?)";
+    public void delete(Transaction transaction) throws OperationFailedException, DataNotFoundException {
+        Transaction transactionFromDb = findById(transaction.getId());
+        if (transactionFromDb == null) {
+            throw new TransactionNotFoundException("Transaction " + transaction.getSum() + " not found in the database");
+        }
+        super.delete(transaction);
+    }
+
+    @Override
+    public int deleteAll() throws OperationFailedException {
+        List<Transaction> transactions = findAll();
+        int deletedRows = 0;
+        if (!transactions.isEmpty()) {
+            deletedRows = super.deleteAll();
+        }
+
+        return deletedRows;
     }
 
     @Override
     protected String getFindByIdQuery() {
-        return "SELECT * FROM transactions WHERE id=?";
+        return "SELECT tr FROM Transaction tr WHERE tr.id=:id";
     }
 
     private String getFindByUserIdQuery() {
-        return "SELECT transactions.* " +
-                "FROM transactions " +
-                "INNER JOIN accounts " +
-                "ON transactions.account_id=accounts.id " +
-                "WHERE accounts.user_id=?";
+        return "SELECT tr FROM Transaction tr WHERE tr.account.user.id=:userId";
+    }
+
+    @Override
+    protected String getDeleteAllQuery() {
+        return "DELETE FROM Transaction tr";
     }
 
     private String getFindByUserIdTodayQuery() {
-        return "SELECT transactions.* FROM transactions INNER JOIN accounts ON " +
-                "transactions.account_id=accounts.id WHERE accounts.user_id=? " +
-                "AND transactions.ts BETWEEN ? AND ?";
+        return "SELECT tr FROM Transaction tr WHERE tr.account.user.id=:userId " +
+                "AND tr.ts BETWEEN :beginTime AND :endTime";
     }
 
     @Override
     protected String getFindAllQuery() {
-        return "SELECT * FROM transactions ORDER BY ts DESC";
+        return "SELECT tr FROM Transaction tr ORDER BY tr.ts DESC";
     }
 
     @Override
-    protected String getDeleteQuery() {
-        return "DELETE FROM transactions WHERE id=?";
-    }
+    public void updateDomain(Transaction persistentTransaction, Transaction transaction) {
 
-    @Override
-    public void setupFindByIdQuery(PreparedStatement ps, Long id) throws SQLException {
-        ps.setLong(1, id);
-    }
-
-    @Override
-    protected String getFindDomainQuery() {
-        return "SELECT * FROM transactions WHERE transfer=? AND type=? AND account_id=? AND category_id=? AND ts=?";
-    }
-
-    @Override
-    public void setupInsertQuery(PreparedStatement ps, Transaction transaction) throws SQLException {
-        ps.setBigDecimal(1, transaction.getSum());
-        ps.setString(2, transaction.getOperation().name());
-        ps.setLong(3, transaction.getAccount().getId());
-        ps.setLong(4, transaction.getCategory().getId());
-        Timestamp timestamp = new Timestamp(transaction.getTimestamp().toEpochMilli());
-        ps.setTimestamp(5, timestamp);
-        logger.debug("Timestamp to insert: " + timestamp);
-    }
-
-    @Override
-    public void setupDeleteQuery(PreparedStatement ps, Transaction transaction) throws SQLException {
-        ps.setLong(1, transaction.getId());
-    }
-
-    @Override
-    public void setupFindDomainQuery(PreparedStatement ps, Transaction transaction) throws SQLException {
-        ps.setBigDecimal(1, transaction.getSum());
-        ps.setString(2, transaction.getOperation().name());
-        ps.setLong(3, transaction.getAccount().getId());
-        ps.setLong(4, transaction.getCategory().getId());
-        ps.setTimestamp(5, new Timestamp(transaction.getTimestamp().toEpochMilli()));
-        logger.debug("Timestamp to find: " + Timestamp.from(transaction.getTimestamp()));
-    }
-
-    @Override
-    public Transaction getDomainFromQueryResult(ResultSet rs) throws SQLException {
-        Transaction transaction = new Transaction();
-        logger.debug("Transaction found from db: " + rs.getString("transfer"));
-        transaction.setId(rs.getLong("id"));
-        transaction.setSum(rs.getBigDecimal("transfer"));
-
-        String operationType = rs.getString("type");
-
-        boolean operationTypeCorrect = false;
-        for (Operation operation:
-                Operation.values()) {
-            if (operation.name().equalsIgnoreCase(operationType)) {
-                operationTypeCorrect = true;
-                transaction.setOperation(operation);
-                break;
-            }
-        }
-        if (!operationTypeCorrect) {
-            throw new SQLException("Transaction type mismatch");
-        }
-
-        Long accountId = rs.getLong("account_id");
-        Account account = accountDao.findById(accountId);
-        transaction.setAccount(account);
-
-        Long categoryId = rs.getLong("category_id");
-        Category category = categoryDao.findById(categoryId);
-        transaction.setCategory(category);
-
-        Timestamp timestamp = rs.getTimestamp("ts");
-        logger.debug("Timestamp of transaction from db: " + timestamp);
-        logger.debug("Timestamp Instant of transaction from db: " + timestamp.toInstant());
-//        transaction.setTimestamp(timestamp.toInstant().atOffset(ZoneOffset.UTC).toLocalDateTime());
-        transaction.setTimestamp(Instant.ofEpochMilli(timestamp.getTime()));
-
-        return transaction;
-    }
-
-    @Override
-    public void updateDomain(ResultSet rs, Transaction transaction) throws SQLException {
-        rs.updateBigDecimal("transfer", transaction.getSum());
-        rs.updateString("type", transaction.getOperation().name());
-        rs.updateLong("account_id", transaction.getAccount().getId());
-        rs.updateLong("category_id", transaction.getCategory().getId());
-        rs.updateRow();
     }
 }

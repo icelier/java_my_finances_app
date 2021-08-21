@@ -1,14 +1,11 @@
 package lessons.lesson_8_hibernate.entities.finances;
 
-import lessons.lesson_5_spring.exceptions.not_match_exceptions.PasswordNotMatchException;
-import lessons.lesson_8_hibernate.entities.DatabaseEntity;
-
 import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
 @Table(name = "account_types")
-public class AccountType implements DatabaseEntity {
+public class AccountType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -56,13 +53,4 @@ public class AccountType implements DatabaseEntity {
         return Objects.hash(getTitle());
     }
 
-    @Override
-    public Long getEntityId() {
-        return getId();
-    }
-
-    @Override
-    public void setEntityId(Long id) {
-        setId(id);
-    }
 }
