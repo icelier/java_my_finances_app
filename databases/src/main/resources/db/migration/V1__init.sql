@@ -29,7 +29,6 @@ password        VARCHAR(100) NOT NULL,
 fullname        VARCHAR(100) NOT NULL,
 age             INT,
 email           VARCHAR(50) NOT NULL,
-version         INT NOT NULL DEFAULT 0,
 UNIQUE (username), UNIQUE(email),
 PRIMARY KEY (id)
 );
@@ -46,7 +45,6 @@ type_id         INT NOT NULL,
 user_id         INT NOT NULL,
 name            VARCHAR(50) NOT NULL,
 total           NUMERIC(15, 2) NOT NULL DEFAULT 0,
-version         INT NOT NULL DEFAULT 0,
 UNIQUE(user_id, name),
 PRIMARY KEY (id),
 CONSTRAINT FK_USER_ID_FK1 FOREIGN KEY (user_id)
@@ -70,7 +68,6 @@ type            VARCHAR(25)  NOT NULL CHECK (type in ('CREDIT', 'DEBET')),
 account_id      INT NOT NULL,
 category_id     INT NOT NULL,
 ts              TIMESTAMP NOT NULL,
-version         INT NOT NULL DEFAULT 0,
 PRIMARY KEY (id),
 CONSTRAINT FK_ACCOUNT_ID FOREIGN KEY (account_id)
 REFERENCES accounts (id)
@@ -81,12 +78,12 @@ ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 INSERT INTO transactions (sum, type, account_id, category_id, ts)
-VALUES (2000, 'CREDIT', 2, 3, '2021-06-22 19:10:25'),
-(20340, 'CREDIT', 3, 3, '2021-06-22 19:10:25'),
+VALUES (-2000, 'CREDIT', 2, 3, '2021-06-22 19:10:25'),
+(-20340, 'CREDIT', 3, 3, '2021-06-22 19:10:25'),
 (53530, 'DEBET', 1, 1, '2021-06-22 19:10:25'),
-(200, 'CREDIT', 2, 6, '2021-06-22 19:10:25'),
-(2055, 'CREDIT', 1, 5, '2021-06-22 19:10:25'),
-(1536, 'CREDIT', 2, 4, '2021-06-22 19:10:25');
+(-200, 'CREDIT', 2, 6, '2021-06-22 19:10:25'),
+(-2055, 'CREDIT', 1, 5, '2021-06-22 19:10:25'),
+(-1536, 'CREDIT', 2, 4, '2021-06-22 19:10:25');
 
 CREATE TABLE IF NOT EXISTS roles (
     id                      BIGSERIAL,
