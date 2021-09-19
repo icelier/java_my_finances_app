@@ -1,3 +1,5 @@
+CREATE SCHEMA IF NOT EXISTS finances;
+
 CREATE TABLE IF NOT EXISTS categories (
 id              BIGSERIAL,
 title           VARCHAR(50) NOT NULL,
@@ -45,6 +47,7 @@ type_id         INT NOT NULL,
 user_id         INT NOT NULL,
 name            VARCHAR(50) NOT NULL,
 total           NUMERIC(15, 2) NOT NULL DEFAULT 0,
+version         INT NOT NULL DEFAULT 0,
 UNIQUE(user_id, name),
 PRIMARY KEY (id),
 CONSTRAINT FK_USER_ID_FK1 FOREIGN KEY (user_id)
@@ -52,7 +55,7 @@ REFERENCES users (id)
 ON DELETE CASCADE ON UPDATE CASCADE,
 CONSTRAINT FK_TYPE_ID FOREIGN KEY (type_id)
 REFERENCES account_types (id)
-ON DELETE SET NULL ON UPDATE CASCADE
+ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 INSERT INTO accounts (type_id, user_id, name, total) VALUES (2, 1, 'father main salary card', 150000),
@@ -74,7 +77,7 @@ REFERENCES accounts (id)
 ON DELETE CASCADE ON UPDATE CASCADE,
 CONSTRAINT FK_CATEGORY_ID FOREIGN KEY (category_id)
 REFERENCES categories (id)
-ON DELETE SET NULL ON UPDATE CASCADE
+ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 INSERT INTO transactions (sum, type, account_id, category_id, ts)
@@ -97,7 +100,7 @@ VALUES
 
 CREATE TABLE IF NOT EXISTS users_roles (
     user_id INT NOT NULL,
-    role_id INT NOT NULL,
+    role_id INT NOT NULL DEFAULT -1,
     -- PRIMARY KEY (user_id, role_id),
 
     CONSTRAINT FK_USER_ID_FK2 FOREIGN KEY (user_id)
@@ -106,7 +109,7 @@ CREATE TABLE IF NOT EXISTS users_roles (
 
     CONSTRAINT FK_ROLE_ID FOREIGN KEY (role_id)
     REFERENCES roles (id)
-    ON DELETE SET NULL ON UPDATE CASCADE
+    ON DELETE RESTRICT ON UPDATE CASCADE
 );
 INSERT INTO users_roles
 VALUES

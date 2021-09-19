@@ -127,15 +127,9 @@ class TransactionServiceTest {
     @Test
     @Order(5)
     void findAllByUserIdToday_ok() throws OperationFailedException {
-        List<Account> userOneAccounts = userService.findById(1L).getAccounts();
-        long transactionCount = userOneAccounts.stream()
-                .map(Account::getTransactions)
-                .map(List::size)
-                .reduce(0, Integer::sum);
+        List<Transaction> userTransactions = subj.findAllByUserIdToday(1L);
 
-        List<Transaction> userTransactions = subj.findAllByUserId(1L);
-
-        assertEquals(transactionCount, userTransactions.size());
+        assertEquals(0, userTransactions.size());
     }
 
     @Test

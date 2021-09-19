@@ -1,13 +1,11 @@
 package lessons.lesson_9_spring_boot.controllers.finances.transactions;
 
 import lessons.lesson_9_spring_boot.controllers.DomainConverter;
+import lessons.lesson_9_spring_boot.dao.finances.CategoryDao;
 import lessons.lesson_9_spring_boot.entities.finances.Transaction;
 import lessons.lesson_9_spring_boot.services.finances.AccountService;
-import lessons.lesson_9_spring_boot.services.finances.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
 
 @RequiredArgsConstructor
 @Component
@@ -15,7 +13,7 @@ public class TransactionConverter implements
         DomainConverter<TransactionRequest, Transaction,
         TransactionResponse> {
     private final AccountService accountService;
-    private final CategoryService categoryService;
+    private final CategoryDao categoryDao;
 
     @Override
     public Transaction convertDomainFromRequest(TransactionRequest request){

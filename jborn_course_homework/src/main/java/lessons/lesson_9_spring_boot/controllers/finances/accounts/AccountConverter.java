@@ -51,7 +51,7 @@ public class AccountConverter implements
         if (user == null) {
             throw new UserNotFoundException("User name not found");
         }
-        AccountType accountType = accountTypeDao.findByTitle(request.getAccountType());
+        AccountType accountType = accountTypeDao.findByTitle(request.getAccountType()).orElse(null);
         if (accountType == null) {
             throw new AccountTypeNotFoundException("AccountType not found");
         }

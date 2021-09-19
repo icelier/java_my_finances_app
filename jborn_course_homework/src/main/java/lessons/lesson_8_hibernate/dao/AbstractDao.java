@@ -107,6 +107,14 @@ public abstract class AbstractDao<DOMAIN, ID> {
         }
     }
 
+    /**
+     * Used to rollback transaction due to runtime exception catch and
+     * transform into custom non-runtime exceptions e.g. OperationFailedException,
+     * DataNotFoundException etc. in which case (runtime exception catch)
+     * transaction is not marked for rollback
+     * @param transaction database transaction to roll back
+     * @throws OperationFailedException if rollback for active transaction failed
+     */
     protected void rollbackTransaction(EntityTransaction transaction) throws OperationFailedException {
         if (transaction.isActive()) {
             try {

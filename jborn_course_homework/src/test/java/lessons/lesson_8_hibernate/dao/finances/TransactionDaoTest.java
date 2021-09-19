@@ -56,10 +56,6 @@ class TransactionDaoTest {
     void insert_ok() throws OperationFailedException, TransactionAlreadyExistsException, CategoryNotFoundException {
         Transaction newTransaction = new Transaction();
         Category category = categoryDao.findByTitle("utility bills");
-//        Account account = new Account("brand new account", new BigDecimal("10000.00"),
-//                accountTypeDao.findById(6L), userDao.findById(1L));
-//        accountDao.insert(account);
-//        assertNotNull(account.getId());
         Account account = accountDao.findById(1L);
         newTransaction.setSum(new BigDecimal("-1000.00"));
         newTransaction.setCategory(category);
