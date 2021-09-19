@@ -80,51 +80,52 @@ public class TransactionService extends AbstractService<Transaction, Long> {
     }
 
     /**
-     *
+     * Commits transfer from one account to another,
+     * inserts two transactions for debet and credit operations into database.
      * @param fromAccountId account id to withdraw money from
      * @param toAccountId account id to transfer money to
      * @param sum to be transferred
-     * @throws AccountNotFoundException if origin or destination account not found in the database by id
-     * @throws AccountNotMatchException if there is not enough money at the account
-     * @throws OperationFailedException if transaction insertion into database failed
-     * @throws TransactionAlreadyExistsException if transaction already found in database
-     * @throws CategoryNotFoundException if transaction category not found in the database by title
+     * @throws OperationFailedException if transaction failed
      */
-    public void commitTransaction(Long fromAccountId, Long toAccountId, BigDecimal sum) throws AccountNotFoundException,
-            AccountNotMatchException, OperationFailedException, TransactionAlreadyExistsException, CategoryNotFoundException {
-//        if (sum.compareTo(BigDecimal.ZERO) < 0) {
-//            throw new IllegalArgumentException("Sum for transfer should be more than zero");
-//        }
+    public void commitTransaction(Long fromAccountId, Long toAccountId, BigDecimal sum) throws OperationFailedException {
+        if (sum.compareTo(BigDecimal.ZERO) < 0) {
+            throw new OperationFailedException("Sum for transfer should be more than zero");
+        }
         EntityTransaction transaction = null;
         boolean hasSuccess = false;
 
-        while(!hasSuccess) {
-            if (transaction != null) {
-                logger.debug("Money transfer transactions is active = " + transaction.isActive());
-            }
-            transaction = entityManager.getTransaction();
-            transaction.begin();
-            Account fromAccount = accountService.findById(fromAccountId);
-            if (fromAccount == null) {
-                throw new AccountNotFoundException("Account for withdraw not found");
-            }
-            entityManager.lock(fromAccount, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        try {
+            while(!hasSuccess) {
+                if (transaction != null) {
+                    logger.debug("Money transfer transactions is active = " + transaction.isActive());
+                }
+                transaction = entityManager.getTransaction();
+                transaction.begin();
+                Account fromAccount = accountService.findById(fromAccountId);
+                if (fromAccount == null) {
+                    throw new AccountNotFoundException("Account for withdraw not found");
+                }
+                entityManager.lock(fromAccount, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
 
-            Account toAccount = accountService.findById(toAccountId);
-            if (toAccount == null) {
-                throw new AccountNotFoundException("Account for transfer not found");
-            }
-            entityManager.lock(toAccount, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+                Account toAccount = accountService.findById(toAccountId);
+                if (toAccount == null) {
+                    throw new AccountNotFoundException("Account for transfer not found");
+                }
+                entityManager.lock(toAccount, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
 
-            withdrawMoney(fromAccount, sum);
-            transferMoney(toAccount, sum);
-            try {
-                transaction.commit();
-                hasSuccess = true;
-            } catch (OptimisticLockException ex) {
-//                    transaction.rollback();
-                ex.printStackTrace();
+                withdrawMoney(fromAccount, sum);
+                transferMoney(toAccount, sum);
+                try {
+                    transaction.commit();
+                    hasSuccess = true;
+                } catch (OptimisticLockException ex) {
+                    ex.printStackTrace();
+                }
             }
+        } catch (Exception e) {
+            throw new OperationFailedException(e.getMessage());
+        } finally {
+            rollbackTransaction(transaction);
         }
     }
 
@@ -190,6 +191,16 @@ public class TransactionService extends AbstractService<Transaction, Long> {
         transaction.setCategory(categoryType);
 
         return transaction;
+    }
+
+    private void rollbackTransaction(EntityTransaction transaction) throws OperationFailedException {
+        if (transaction.isActive()) {
+            try {
+                transaction.rollback();
+            } catch (Exception ex) {
+                throw new OperationFailedException(ex.getMessage());
+            }
+        }
     }
 
 }

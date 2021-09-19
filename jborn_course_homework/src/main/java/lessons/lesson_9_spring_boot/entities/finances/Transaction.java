@@ -41,13 +41,13 @@ public class Transaction {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id")
+    @JoinColumn(name = "account_id", updatable = false)
     private Account account;
 
     @JsonBackReference
     @OnDelete(action = OnDeleteAction.NO_ACTION)
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", updatable = false)
     private Category category;
 
     public void setSum(BigDecimal sum) {

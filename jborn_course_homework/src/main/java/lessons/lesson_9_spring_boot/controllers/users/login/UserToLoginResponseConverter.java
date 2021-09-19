@@ -8,10 +8,13 @@ import org.springframework.stereotype.Component;
 public class UserToLoginResponseConverter implements Converter<UserEntity, LoginResponse> {
     @Override
     public LoginResponse convert(UserEntity userEntity) {
-        return new LoginResponse(userEntity.getUserName(),
+
+        return new LoginResponse(
+                userEntity.getUserName(),
                 userEntity.getFullName(),
                 userEntity.getAge(),
                 userEntity.getEmail(),
-                userEntity.getAccounts());
+                userEntity.getAccounts()
+        );
     }
 }

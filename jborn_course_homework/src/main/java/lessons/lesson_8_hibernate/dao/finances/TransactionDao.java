@@ -17,6 +17,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.sql.*;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -69,14 +72,13 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
         try {
             TypedQuery<Transaction> query = entityManager.createQuery(getFindByUserIdTodayQuery(), Transaction.class);
             query.setParameter("userId", userId);
-            Instant now = Instant.now();
-            Instant yesterday = now.minus(1, TimeUnit.DAYS.toChronoUnit());
-            String endTime = Timestamp.from(now).toString();
-            String beginTime = Timestamp.from(yesterday).toString();
+            Instant beginTime = Timestamp.valueOf(LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT)).toInstant();
+            Instant endTime = Timestamp.valueOf(LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIDNIGHT)).toInstant();
             query.setParameter("beginTime", beginTime);
             query.setParameter("endTime", endTime);
             transactions = query.getResultList();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new OperationFailedException(e.getMessage());
         }
 
@@ -197,7 +199,7 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
 
     private String getFindByUserIdTodayQuery() {
         return "SELECT tr FROM Transaction tr WHERE tr.account.user.id=:userId " +
-                "AND tr.ts BETWEEN :beginTime AND :endTime";
+                "AND tr.timestamp BETWEEN :beginTime AND :endTime";
     }
 
     @Override

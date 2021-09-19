@@ -34,17 +34,21 @@ public class Account {
     @JsonBackReference
     @OnDelete(action = OnDeleteAction.NO_ACTION)
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "type_id")
+    @JoinColumn(name = "type_id", updatable = false)
     private AccountType type;
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", updatable = false)
     private UserEntity user;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE)
     private List<Transaction> transactions;
+
+    @Version
+    @Column(name="version")
+    private Long version;
 
     public void setTotal(BigDecimal total) {
         this.total = total.setScale(2, RoundingMode.HALF_UP);
