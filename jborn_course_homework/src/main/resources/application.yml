@@ -3,13 +3,14 @@ spring:
     change-log: classpath:db.changelog-master.xml
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=finances
+#    if finances schema does not exist, default public is taken
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=finances,public
     username: postgres
     password: clai531_Tre
 
-logging:
-    level:
-      lessons:
-        lesson_9_spring_boot: TRACE
-      org:
-        springframework: TRACE
+#logging:
+#    level:
+#      lessons:
+#        lesson_9_spring_boot: TRACE
+#      org:
+#        springframework: TRACE

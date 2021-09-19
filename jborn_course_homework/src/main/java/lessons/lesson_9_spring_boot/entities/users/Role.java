@@ -28,6 +28,10 @@ public class Role {
         return getName().equals(role.getName());
     }
 
+    public Role (String name) {
+        this.name = name;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(getName());
