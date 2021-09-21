@@ -198,8 +198,7 @@ public class TransactionDao extends AbstractDao<Transaction, Long> {
     }
 
     private String getFindByUserIdTodayQuery() {
-        return "SELECT tr FROM Transaction tr " +
-                 "WHERE tr.account.user.id=:userId " +
+        return "SELECT tr FROM Transaction tr WHERE tr.account.user.id=:userId " +
                 "AND tr.timestamp BETWEEN :beginTime AND :endTime";
     }
 

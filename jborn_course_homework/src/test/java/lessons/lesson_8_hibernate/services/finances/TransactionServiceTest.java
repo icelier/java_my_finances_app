@@ -150,9 +150,19 @@ class TransactionServiceTest {
 
         Account updatedAccountFrom = accountService.findById(accountFrom.getId());
         Account updatedAccountTo = accountService.findById(accountTo.getId());
+//        List<Transaction> transactions = subj.findAll();
+        List<Transaction> transactionsInAccountFrom = entityManager
+                .createQuery("SELECT tr FROM Transaction  tr WHERE tr.account=:account")
+                .setParameter("account", accountFrom).getResultList();
+
+        List<Transaction> transactionsInAccountTo = entityManager
+                .createQuery("SELECT tr FROM Transaction  tr WHERE tr.account=:account")
+                .setParameter("account", accountTo).getResultList();
 
         assertEquals(0, updatedAccountFrom.getTotal().compareTo(BigDecimal.ZERO));
         assertEquals(0, updatedAccountTo.getTotal().compareTo(sum.add(accountTo.getTotal())));
+        assertEquals(0, sum.negate().compareTo(transactionsInAccountFrom.get(transactionsInAccountFrom.size()-1).getSum()));
+        assertEquals(0, sum.compareTo(transactionsInAccountTo.get(transactionsInAccountTo.size()-1).getSum()));
 
     }
 
