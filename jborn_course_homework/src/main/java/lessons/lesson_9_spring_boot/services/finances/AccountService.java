@@ -81,7 +81,7 @@ public class AccountService implements AbstractService<Account, Long> {
             throw new AccountNotFoundException("Account for id " + id + " not found");
         }
         updateDomainWithNewData(accountFromDb, account);
-        //for integration tests
+
         accountDao.flush();
 
         detach(accountFromDb);
