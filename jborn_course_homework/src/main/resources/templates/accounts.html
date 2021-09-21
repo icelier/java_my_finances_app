@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8"/>
+    <title>Your accounts</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th>№</th>
+        <th sec:authorize="hasRole('ADMIN')">Id</th>
+        <th>Account name</th>
+        <th>Total</th>
+        <th>Account Type</th>
+        <th sec:authorize="hasRole('ADMIN')">Delete Account</th>
+        <th>Withdraw money</th>
+        <th>Transactions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr  th:each="account, itemStat : ${accounts}">
+        <form th:action="@{/my-finances/accounts/delete(accountId=${account.id})}"
+              method="POST" class="form-horizontal">
+            <td th:text="${itemStat.index+1}" />
+            <td sec:authorize="hasRole('ADMIN')"
+                th:text="${account.id}" />
+            <td>
+                <a th:href="@{'/my-finances/accounts/show/' + ${account.id}}"
+                   th:text="${account.name}"/>
+            </td>
+            <td th:text="${account.total}" />
+            <td th:text="${account.accountType}" />
+            <td sec:authorize="hasRole('ADMIN')">
+                <div style="margin-top: 10px" class="form-group">
+                    <div class="col-sm-6 controls">
+                        <button type="submit" class="btn btn-success">Delete account</button>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <a th:href="@{/my-finances/transactions/transfer(accountIdFrom=${account.id})}" th:disabled="${accounts.size() == 1}"><input type="button" value="Make transaction" /></a>
+            </td>
+            <td>
+                <a th:href="@{'/my-finances/transactions/' + ${accounts[__${itemStat.index}__].id}}">Check transactions</a>
+            </td>
+        </form>
+    </tr>
+    </tbody>
+</table>
+
+</p>
+<a th:href="@{/my-finances/accounts/new_account}"><input type="button" value="Add new account" /></a>
+</p>
+<form th:action="@{/logout}" method="POST" class="form-horizontal">
+    <div style="margin-top: 10px" class="form-group">
+        <div class="col-sm-6 controls">
+            <button type="submit" class="btn btn-success">Logout</button>
+        </div>
+    </div>
+</form>
+</body>
+</html>

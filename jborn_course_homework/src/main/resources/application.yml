@@ -8,9 +8,9 @@ spring:
     username: postgres
     password: clai531_Tre
 
-#logging:
-#    level:
-#      lessons:
-#        lesson_9_spring_boot: TRACE
-#      org:
-#        springframework: TRACE
+logging:
+    level:
+      lessons:
+        lesson_10_spring_security: TRACE
+      org:
+        springframework: TRACE
