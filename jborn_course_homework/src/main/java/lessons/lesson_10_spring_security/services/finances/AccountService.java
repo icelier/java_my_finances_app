@@ -1,13 +1,13 @@
-package lessons.lesson_9_spring_boot.services.finances;
+package lessons.lesson_10_spring_security.services.finances;
 
-import lessons.lesson_9_spring_boot.dao.finances.AccountDao;
-import lessons.lesson_9_spring_boot.entities.finances.Account;
-import lessons.lesson_9_spring_boot.entities.finances.Operation;
-import lessons.lesson_9_spring_boot.exceptions.already_exists_exception.AccountAlreadyExistsException;
-import lessons.lesson_9_spring_boot.exceptions.not_found_exception.AccountNotFoundException;
-import lessons.lesson_9_spring_boot.exceptions.not_match_exceptions.AccountNotMatchException;
-import lessons.lesson_9_spring_boot.exceptions.operation_failed.OperationFailedException;
-import lessons.lesson_9_spring_boot.services.AbstractService;
+import lessons.lesson_10_spring_security.dao.finances.AccountDao;
+import lessons.lesson_10_spring_security.entities.finances.Account;
+import lessons.lesson_10_spring_security.entities.finances.Operation;
+import lessons.lesson_10_spring_security.exceptions.already_exists_exception.AccountAlreadyExistsException;
+import lessons.lesson_10_spring_security.exceptions.not_found_exception.AccountNotFoundException;
+import lessons.lesson_10_spring_security.exceptions.not_match_exceptions.AccountNotMatchException;
+import lessons.lesson_10_spring_security.exceptions.operation_failed.OperationFailedException;
+import lessons.lesson_10_spring_security.services.AbstractService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -81,7 +81,7 @@ public class AccountService implements AbstractService<Account, Long> {
             throw new AccountNotFoundException("Account for id " + id + " not found");
         }
         updateDomainWithNewData(accountFromDb, account);
-
+        //for integration tests
         accountDao.flush();
 
         detach(accountFromDb);
@@ -125,7 +125,8 @@ public class AccountService implements AbstractService<Account, Long> {
      * @throws AccountNotMatchException if there is not enough money at the account for credit operation
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateSum(Account account, BigDecimal sum, Operation operation) throws AccountNotMatchException {
+    public void updateSum(Account account, BigDecimal sum, Operation operation)
+            throws AccountNotMatchException {
         if (operation == Operation.CREDIT && (account.getTotal().compareTo(sum) < 0)) {
             throw new AccountNotMatchException("Transaction sum is beyond current account total");
         }
