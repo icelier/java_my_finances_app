@@ -47,7 +47,7 @@ public class AccountService implements AbstractService<Account, Long> {
      * @return persistent entity inserted into database with generated id
      * @throws AccountAlreadyExistsException if account name with such user id already exists
      */
-    @Transactional
+    @Transactional(rollbackFor = AccountAlreadyExistsException.class)
     @Override
     public Account insert(Account account) throws AccountAlreadyExistsException {
         Account accountFromDb = findByUserIdAndName(account.getUser().getId(), account.getName());
@@ -81,7 +81,7 @@ public class AccountService implements AbstractService<Account, Long> {
             throw new AccountNotFoundException("Account for id " + id + " not found");
         }
         updateDomainWithNewData(accountFromDb, account);
-        //for integration tests
+
         accountDao.flush();
 
         detach(accountFromDb);

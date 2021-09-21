@@ -225,7 +225,7 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void deleteAccountById_ok() throws OperationFailedException, AccountNotFoundException {
+    public void deleteAccountById_ok() {
         when(accountDao.findById(firstAccount.getId())).thenReturn(Optional.of(firstAccount));
         when(accountDao.deleteAccountById(firstAccount.getId())).thenReturn(1);
 

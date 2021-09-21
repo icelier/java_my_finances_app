@@ -58,7 +58,7 @@ public class UserService implements AbstractService<UserEntity, Long> {
      * @return persistent entity inserted into database with generated id
      * @throws UserAlreadyExistsException if email or username already registered
      */
-    @Transactional
+    @Transactional(rollbackFor = UserAlreadyExistsException.class)
     @Override
     public UserEntity insert(UserEntity user) throws UserAlreadyExistsException {
         UserEntity userFromDbByEmail = findByEmail(user.getEmail());
