@@ -1,8 +1,5 @@
 package lessons.lesson_9_spring_boot.controllers.users.registration;
 
-import lessons.lesson_9_spring_boot.controllers.users.login.LoginController;
-import lessons.lesson_9_spring_boot.controllers.users.login.LoginRequest;
-import lessons.lesson_9_spring_boot.controllers.users.login.LoginResponse;
 import lessons.lesson_9_spring_boot.dao.users.RoleDao;
 import lessons.lesson_9_spring_boot.entities.users.Role;
 import lessons.lesson_9_spring_boot.entities.users.UserEntity;
@@ -13,18 +10,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;

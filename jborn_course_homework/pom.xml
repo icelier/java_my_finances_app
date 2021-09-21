@@ -75,6 +75,10 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
             <version>2.5.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
 
 <!--        for @Valid use-->
         <dependency>
@@ -106,13 +110,25 @@
             <artifactId>postgresql</artifactId>
             <version>42.2.5</version>
         </dependency>
+
+        <!--        THYMELEAF-->
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>1.10.6</version>
-            <scope>test</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+        <!--        for sec:authorize to work in html pages-->
+        <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity5</artifactId>
+        </dependency>
+
+<!--        GUAVA-->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>29.0-jre</version>
+        </dependency>
     </dependencies>
 
     <build>
