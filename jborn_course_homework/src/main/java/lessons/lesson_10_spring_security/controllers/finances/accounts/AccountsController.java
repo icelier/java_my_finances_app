@@ -9,6 +9,7 @@ import lessons.lesson_10_spring_security.exceptions.already_exists_exception.Acc
 import lessons.lesson_10_spring_security.exceptions.not_found_exception.AccountNotFoundException;
 import lessons.lesson_10_spring_security.exceptions.not_found_exception.AccountTypeNotFoundException;
 import lessons.lesson_10_spring_security.exceptions.not_found_exception.UserNotFoundException;
+import lessons.lesson_10_spring_security.exceptions.operation_failed.OperationFailedException;
 import lessons.lesson_10_spring_security.services.finances.AccountService;
 import lessons.lesson_10_spring_security.services.users.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +22,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.View;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static lessons.lesson_10_spring_security.MyApplication.BASE_URL;
+import static org.springframework.http.ResponseEntity.internalServerError;
 
 @RequiredArgsConstructor
 @RequestMapping(BASE_URL + "/accounts")
@@ -41,15 +44,13 @@ public class AccountsController {
 
     @PostMapping()
     public String getAllAccountsByUserId(Model model) {
-        System.out.println("In getAllAccountsByUserId");
         String userName = ((User)authenticationFacade.getAuthentication().getPrincipal()).getUsername();
-//        String userName = ((User)authentication.getPrincipal()).getUsername();
         UserEntity user = userService.findByUserName(userName);
 
         List<Account>  userAccounts = user.getAccounts();
         List<AccountResponse> accountResponses = userAccounts.stream()
-                    .map(converter::convertDomainToResponse)
-                    .collect(Collectors.toList());
+                .map(converter::convertDomainToResponse)
+                .collect(Collectors.toList());
 
         model.addAttribute("accounts", accountResponses);
 
@@ -121,12 +122,9 @@ public class AccountsController {
             path = "/update")
     public String updateAccount(
             HttpServletRequest httpRequest,
-//            RedirectAttributes attrs,
             @ModelAttribute(name = "accountToUpdate") @Valid AccountRequest request,
-                                                         @RequestParam(value = "accountId") Long accountId) {
-        System.out.println("request = " + request);
-        Account account = accountService.findById(accountId);
-        if (account == null) {
+            @RequestParam(value = "accountId") Long accountId) {
+        if (blankInputData(request)) {
             return "redirect:" + BASE_URL + "/accounts/show/" + accountId + "?error";
         }
 
@@ -137,12 +135,11 @@ public class AccountsController {
         try {
             updateData = converter.convertDomainFromRequest(request);
         } catch (UserNotFoundException | AccountTypeNotFoundException e) {
-            System.out.println("UserNotFoundException | AccountTypeNotFoundException");
             return "redirect:" + BASE_URL + "/accounts/show/" + accountId + "?error";
         }
 
         try {
-            account = accountService.update(accountId, updateData);
+            accountService.update(accountId, updateData);
 
             httpRequest.setAttribute(
                     View.RESPONSE_STATUS_ATTRIBUTE, HttpStatus.TEMPORARY_REDIRECT);
@@ -156,8 +153,14 @@ public class AccountsController {
     @PostMapping(
             path = "/delete"
     )
-    public String deleteAccount(HttpServletRequest httpRequest, @RequestParam(name = "accountId") Long id) {
-        accountService.deleteById(id);
+    public String deleteAccount(HttpServletRequest httpRequest, HttpServletResponse httpResponse,
+                                @RequestParam(name = "accountId") Long id) {
+        try {
+            accountService.deleteById(id);
+        } catch (AccountNotFoundException | OperationFailedException e) {
+            httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return e.getMessage();
+        }
 
         httpRequest.setAttribute(
                 View.RESPONSE_STATUS_ATTRIBUTE, HttpStatus.TEMPORARY_REDIRECT);
@@ -169,11 +172,9 @@ public class AccountsController {
     }
 
     private String getAccountErrorPage(HttpServletRequest httpRequest,
-//                                       RedirectAttributes attrs,
                                        Long id) {
         httpRequest.setAttribute(
                 View.RESPONSE_STATUS_ATTRIBUTE, HttpStatus.TEMPORARY_REDIRECT);
-//        attrs.addAttribute("accountId", id);
         return "redirect:" + BASE_URL + "/accounts/show/" + id + "?error";
     }
 }
