@@ -11,7 +11,6 @@
 		<module>finances-service</module>
         <module>myfinances-client</module>
 		<module>users-service</module>
-		<module>auth-server</module>
     </modules>
     <parent>
 		<groupId>org.springframework.boot</groupId>
