@@ -6,12 +6,17 @@
     <modules>
 		<module>jborn_course_homework</module>
 		<module>config-server</module>
-		<module>jborn_course_homework</module>
-	</modules>
+        <module>eureka-service</module>
+		<module>commons-service</module>
+		<module>finances-service</module>
+        <module>myfinances-client</module>
+		<module>users-service</module>
+		<module>auth-server</module>
+    </modules>
     <parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.1</version>
+		<version>2.4.9</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.chalova.irina</groupId>
@@ -19,10 +24,34 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>my-finances</name>
 	<description>Study project for individual finances control</description>
+
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>11</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<spring-cloud.version>2020.0.3</spring-cloud.version>
 	</properties>
+
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<spring.profiles.active>dev</spring.profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>prod</id>
+			<properties>
+				<spring.profiles.active>prod</spring.profiles.active>
+			</properties>
+		</profile>
+	</profiles>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -30,21 +59,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.flywaydb</groupId>-->
-<!--			<artifactId>flyway-core</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.thymeleaf.extras</groupId>-->
-<!--			<artifactId>thymeleaf-extras-springsecurity5</artifactId>-->
-<!--		</dependency>-->
-
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -82,31 +98,6 @@
 		</dependency>
 
 	</dependencies>
-
-	<build>
-		<plugins>
-<!--			does not work in multi-module project, doesnot resolve dependencies to other modules-->
-
-<!--			<plugin>-->
-<!--				<groupId>org.springframework.boot</groupId>-->
-<!--				<artifactId>spring-boot-maven-plugin</artifactId>-->
-<!--			</plugin>-->
-
-<!--			<plugin>-->
-<!--				<groupId>org.flywaydb</groupId>-->
-<!--				<artifactId>flyway-maven-plugin</artifactId>-->
-<!--				<version>5.2.4</version>-->
-<!--				<configuration>-->
-<!--					<url>jdbc:postgresql://localhost:5432/postgres?currentSchema=finances</url>-->
-<!--					<user>postgres</user>-->
-<!--					<password>clai531_Tre</password>-->
-<!--					<schemas>-->
-<!--						<schema>finances</schema>-->
-<!--					</schemas>-->
-<!--				</configuration>-->
-<!--			</plugin>-->
-		</plugins>
-	</build>
 
 	<dependencyManagement>
 		<dependencies>
