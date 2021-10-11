@@ -346,7 +346,8 @@ public class UserService implements AbstractService<UserEntity, Long>,
      * @throws UserNotFoundException if user not found by given user name
      * @throws PasswordNotMatchException if MAX_TRY attempts count exceeded
      */
-    public boolean checkPasswordByUserName(String userName, String rawPassword) {
+    public boolean checkPasswordByUserName(String userName, String rawPassword)
+    throws PasswordNotMatchException {
         UserEntity userFomDb = findByUserName(userName);
         if (userFomDb == null) {
             throw new UserNotFoundException("User with user name " + userName + " not found");

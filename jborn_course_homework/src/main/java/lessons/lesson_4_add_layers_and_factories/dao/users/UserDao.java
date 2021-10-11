@@ -266,6 +266,7 @@ public class UserDao implements Dao<UserEntity, Long> {
         user.setPassword(rs.getString("password"));
         user.setAge(rs.getInt("age"));
         List<Role> roles = getUserRoles(rs.getLong("id"));
+        user.setRoles(roles);
 
         return user;
     }
