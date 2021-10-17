@@ -337,25 +337,6 @@ public class UserService implements AbstractService<UserEntity, Long>,
     }
 
     /**
-     * Retrieves an entity from database by given user name
-     * and throws exception, if no user found.
-     * @param userName to check in the database
-     * @param rawPassword not encoded password
-     * @return true if given raw password after encoding with password encoder
-     * matches the encoded password of the entity retrieved from database
-     * @throws UserNotFoundException if user not found by given user name
-     * @throws PasswordNotMatchException if MAX_TRY attempts count exceeded
-     */
-    public boolean checkPasswordByUserName(String userName, String rawPassword) {
-        UserEntity userFomDb = findByUserName(userName);
-        if (userFomDb == null) {
-            throw new UserNotFoundException("User with user name " + userName + " not found");
-        }
-
-        return encoder.matches(rawPassword, userFomDb.getPassword());
-    }
-
-    /**
      * Used to detach from persistent context the entity retrieved from database
      * @param user persistent entity
      */
